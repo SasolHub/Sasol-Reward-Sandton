@@ -1,0 +1,2219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sasol Rewards | Live Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bd:#003087;--bm:#0057b8;--bl:#1a7fe0;--bp:#d6e8ff;--bu:#e8f2ff;--g1:#f8fafc;--g2:#f1f5f9;--g3:#e2e8f0;--g4:#cbd5e1;--g5:#64748b;--g7:#334155;--g9:#0f172a;--gn:#16a34a;--rd:#dc2626;--am:#d97706;--sh:0 1px 3px rgba(0,48,135,0.08),0 4px 12px rgba(0,48,135,0.06);--shm:0 4px 16px rgba(0,48,135,0.12)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+[id]{scroll-margin-top:14px}
+.qnav{background:var(--g1);border-bottom:1px solid var(--g3);padding:8px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11px}
+.qnav-lbl{font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:0.4px;font-size:10px;white-space:nowrap}
+.qnav-link{color:var(--bd);text-decoration:none;font-weight:600;background:white;border:1px solid var(--g3);border-radius:20px;padding:5px 12px;white-space:nowrap;transition:all 0.18s}
+.qnav-link:hover{background:var(--bp);border-color:var(--bm)}
+.qnav-link.qnav-hl{background:linear-gradient(90deg,var(--bd),var(--bm));color:white;border-color:transparent}
+.qnav-link.qnav-hl:hover{opacity:0.88}
+@media(max-width:640px){
+  .qnav{padding:8px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+body{font-family:'Inter',sans-serif;background:var(--g1);color:var(--g9);min-height:100vh}
+.hdr{background:linear-gradient(135deg,var(--bd) 0%,var(--bm) 60%,var(--bl) 100%);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,0.2)}
+.hl{display:flex;align-items:center;gap:12px}
+.logo{background:white;border-radius:7px;padding:5px 11px;font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:var(--bd);letter-spacing:1px}
+.htitle h1{color:white;font-size:16px;font-weight:700}
+.htitle p{color:rgba(255,255,255,0.75);font-size:10px;margin-top:1px}
+.hr{display:flex;align-items:center;gap:12px}
+.live{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:4px 10px;color:white;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+.ldot{width:6px;height:6px;background:#4ade80;border-radius:50%;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.4)}}
+.clk{color:white;font-size:12px;opacity:0.85}
+.upbtn{background:white;color:var(--bd);border:none;border-radius:7px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.2s}
+.upbtn:hover{background:var(--bp)}
+.kc[onclick]:hover{transform:translateY(-3px);box-shadow:var(--shm);opacity:0.92}
+.kc[onclick]{transition:transform 0.18s,box-shadow 0.18s,opacity 0.18s}
+/* Toast notification */
+.toast{position:fixed;bottom:24px;right:24px;background:#003087;color:white;padding:12px 20px;border-radius:10px;font-size:12px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,0.25);z-index:9999;opacity:0;transform:translateY(16px);transition:all 0.3s ease;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+#fileInput{display:none}
+
+.fbar{background:white;border-bottom:1px solid var(--g3);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--sh)}
+.fbar label{font-size:10px;font-weight:700;color:var(--bd);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap}
+.fg{display:flex;align-items:center;gap:5px}
+select,input[type=text],input[type=date]{border:1.5px solid var(--g3);border-radius:6px;padding:5px 8px;font-size:11px;font-family:'Inter',sans-serif;color:var(--g7);background:white;outline:none;transition:border-color 0.2s}
+select:focus,input:focus{border-color:var(--bm)}
+select{cursor:pointer;min-width:120px}
+input[type=text]{min-width:150px}
+input[type=date]{min-width:120px}
+.fdiv{width:1px;height:24px;background:var(--g3);margin:0 2px}
+.rbtn{background:var(--g2);color:var(--g7);border:1.5px solid var(--g3);border-radius:6px;padding:5px 12px;font-size:10px;font-weight:700;cursor:pointer;transition:all 0.2s}
+.rbtn:hover{background:var(--bp);border-color:var(--bm);color:var(--bd)}
+.tbadge{margin-left:auto;background:var(--bd);color:white;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+
+.main{padding:16px 20px}
+.krow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:16px}
+.kc{background:white;border-radius:10px;padding:14px;box-shadow:var(--sh);border-left:4px solid var(--bm);transition:transform 0.2s}
+.kc:hover{transform:translateY(-2px);box-shadow:var(--shm)}
+.kc.ktotal{border-left-color:var(--bd);background:linear-gradient(135deg,var(--bd),var(--bm));color:white}
+.kc.kclosed{border-left-color:var(--gn)}
+.kc.knew{border-left-color:var(--bl)}
+.kc.kpend{border-left-color:var(--am)}
+.kc.kcrit{border-left-color:var(--rd)}
+.klbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--g5);margin-bottom:5px}
+.kc.ktotal .klbl{color:rgba(255,255,255,0.7)}
+.kval{font-size:24px;font-weight:700;color:var(--g9);font-variant-numeric:tabular-nums}
+.kc.ktotal .kval{color:white;font-size:28px}
+.ksub{font-size:9px;color:var(--g5);margin-top:2px}
+.kc.ktotal .ksub{color:rgba(255,255,255,0.65)}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:1100px){.g3{grid-template-columns:1fr 1fr}}
+@media(max-width:800px){.g2,.g3{grid-template-columns:1fr}}
+
+.sc{background:white;border-radius:10px;box-shadow:var(--sh);overflow:hidden}
+.sh{background:linear-gradient(90deg,var(--bd),var(--bm));color:white;padding:10px 14px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
+.sb{padding:10px 14px}
+.sr{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--g2);font-size:11px}
+.sr:last-child{border-bottom:none}
+.sr:hover{background:var(--bu);margin:0 -14px;padding:6px 14px}
+.rl{color:var(--g7);font-weight:500;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rbw{flex:0 0 70px;margin:0 8px}
+.rbb{height:5px;background:var(--g2);border-radius:3px;overflow:hidden}
+.rbf{height:100%;background:linear-gradient(90deg,var(--bm),var(--bl));border-radius:3px;transition:width 0.4s}
+.rc{color:var(--bd);font-weight:700;font-size:12px;min-width:36px;text-align:right}
+.rp{color:var(--g5);font-size:9px;min-width:32px;text-align:right}
+
+.tc{background:white;border-radius:10px;box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
+.tscroll{overflow-x:auto;max-height:420px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+thead{position:sticky;top:0;z-index:2}
+thead th{background:linear-gradient(90deg,var(--bd),var(--bm));color:white;padding:9px 10px;text-align:left;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{opacity:0.85}
+tbody tr{border-bottom:1px solid var(--g2);transition:background 0.1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--bu)}
+tbody td{padding:7px 10px;color:var(--g7);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.badge{display:inline-block;padding:2px 7px;border-radius:9px;font-size:9px;font-weight:700;white-space:nowrap}
+.bclosed{background:#dcfce7;color:#16a34a}
+.bnew{background:#dbeafe;color:#1d4ed8}
+.bopen{background:#fef3c7;color:#d97706}
+.bpending{background:#fef9c3;color:#a16207}
+.bresolved{background:#e0f2fe;color:#0369a1}
+.bawaiting{background:#f0fdf4;color:#15803d}
+.bawaction{background:#ede9fe;color:#6d28d9}
+.bcancelled{background:#fee2e2;color:#dc2626}
+.bcritical{background:#fee2e2;color:#dc2626}
+.bhigh{background:#fef3c7;color:#d97706}
+.bmoderate{background:#dbeafe;color:#1d4ed8}
+.blow{background:#f0fdf4;color:#16a34a}
+
+.asc2{background:white;border-radius:10px;box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
+.ascroll{overflow-x:auto;max-height:340px;overflow-y:auto}
+
+.pg{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-top:1px solid var(--g2);background:var(--g1);flex-wrap:wrap;gap:6px}
+.pgi{font-size:10px;color:var(--g5)}
+.pgb{display:flex;gap:4px;flex-wrap:wrap}
+.pb{background:white;border:1.5px solid var(--g3);border-radius:5px;padding:3px 8px;font-size:10px;font-weight:600;cursor:pointer;color:var(--g7);transition:all 0.15s}
+.pb:hover,.pb.active{background:var(--bd);color:white;border-color:var(--bd)}
+.pb:disabled{opacity:0.35;cursor:not-allowed}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--g2)}
+::-webkit-scrollbar-thumb{background:var(--g4);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--bm)}
+
+.chart-section{background:white;border-radius:10px;box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
+.chart-tabs{display:flex;gap:0;border-bottom:1px solid var(--g3);background:var(--g1);padding:0 14px}
+.chart-tab{padding:9px 16px;font-size:11px;font-weight:600;color:var(--g5);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap}
+.chart-tab.active{color:var(--bd);border-bottom-color:var(--bd);background:white}
+.chart-tab:hover{color:var(--bm)}
+.chart-opts{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--g3);background:var(--g2);flex-wrap:wrap}
+.chart-opts label{font-size:10px;font-weight:700;color:var(--bd);text-transform:uppercase;letter-spacing:0.4px}
+.chart-opts select{min-width:100px;font-size:10px;padding:4px 7px}
+.chart-wrap{padding:16px;position:relative}
+.chart-canvas-wrap{position:relative;height:400px}
+
+/* Aging Panel */
+.aging-section{background:white;border-radius:10px;box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
+.aging-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+.aging-band{padding:16px 18px;border-right:1px solid var(--g3);position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s}
+.aging-band:last-child{border-right:none}
+.aging-band:hover{transform:translateY(-2px);z-index:1;box-shadow:var(--shm)}
+.aging-band.red{background:linear-gradient(135deg,#fff5f5,#fff)}
+.aging-band.amber{background:linear-gradient(135deg,#fffbeb,#fff)}
+.aging-band.green{background:linear-gradient(135deg,#f0fdf4,#fff)}
+.aging-band .ab-icon{font-size:28px;margin-bottom:8px}
+.aging-band .ab-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
+.aging-band.red .ab-label{color:#dc2626}
+.aging-band.amber .ab-label{color:#d97706}
+.aging-band.green .ab-label{color:#16a34a}
+.aging-band .ab-val{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.aging-band.red .ab-val{color:#dc2626}
+.aging-band.amber .ab-val{color:#d97706}
+.aging-band.green .ab-val{color:#16a34a}
+.aging-band .ab-sub{font-size:10px;color:var(--g5);margin-top:4px}
+.aging-band .ab-newcount{font-size:11px;font-weight:700;color:#6d28d9;background:#ede9fe;display:inline-block;padding:3px 9px;border-radius:8px;margin-top:8px}
+.aging-band .ab-bar{height:4px;border-radius:2px;margin-top:10px;transition:width 0.5s}
+.aging-band.red .ab-bar{background:#dc2626}
+.aging-band.amber .ab-bar{background:#d97706}
+.aging-band.green .ab-bar{background:#16a34a}
+.aging-band .ab-pct{font-size:11px;font-weight:700;margin-top:6px}
+.aging-band.red .ab-pct{color:#dc2626}
+.aging-band.amber .ab-pct{color:#d97706}
+.aging-band.green .ab-pct{color:#16a34a}
+.aging-band .ab-stripe{position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:0.06}
+.aging-band.red .ab-stripe{background:#dc2626}
+.aging-band.amber .ab-stripe{background:#d97706}
+.aging-band.green .ab-stripe{background:#16a34a}
+/* Aging detail table */
+.aging-detail{border-top:1px solid var(--g3)}
+.aging-detail-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--g1);border-bottom:1px solid var(--g3)}
+.aging-detail-header span{font-size:11px;font-weight:700;color:var(--g7)}
+.aging-detail-close{background:none;border:none;cursor:pointer;font-size:16px;color:var(--g5);padding:0 4px}
+.aging-detail-close:hover{color:var(--rd)}
+.aging-detail-scroll{max-height:300px;overflow-y:auto;overflow-x:auto}
+@media(max-width:700px){.aging-grid{grid-template-columns:1fr}}
+
+/* Contact Centre Agents Performance */
+.ccp-section{background:white;border-radius:10px;box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
+.ccp-controls{display:flex;flex-wrap:wrap;gap:16px;padding:14px 16px;background:var(--g1);border-bottom:1px solid var(--g3)}
+.ccp-controls .fg{display:flex;flex-direction:column;gap:4px}
+.ccp-controls label{font-size:10px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:0.3px}
+.ccp-controls select{padding:7px 10px;border:1px solid var(--g3);border-radius:7px;font-size:12px;font-weight:600;color:var(--g7);background:white;min-width:190px}
+.ccp-stats-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;padding:16px}
+.ccp-stat{background:var(--g1);border:1px solid var(--g2);border-radius:10px;padding:14px;text-align:center}
+.ccp-stat-warn{background:#fff7ed;border-color:#fed7aa}
+.ccp-stat-range{background:#eff6ff;border-color:#bfdbfe}
+.ccp-stat-lbl{font-size:10px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px}
+.ccp-stat-val{font-size:24px;font-weight:800;color:var(--bd)}
+.ccp-stat-warn .ccp-stat-val{color:#c2410c}
+.ccp-stat-range .ccp-stat-val{color:#1d4ed8}
+.ccp-stat-sub{font-size:9px;color:var(--g5);margin-top:3px;font-weight:600}
+.ccp-daterange{display:flex;align-items:center;gap:6px}
+.ccp-daterange input[type=date]{padding:6px 8px;border:1px solid var(--g3);border-radius:7px;font-size:11px;color:var(--g7);background:white}
+.ccp-daterange span{color:var(--g5);font-size:11px;font-weight:600}
+.ccp-clearbtn{background:white;color:var(--g7);border:1.5px solid var(--g3);border-radius:7px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s}
+.ccp-clearbtn:hover{background:var(--bp);border-color:var(--bm);color:var(--bd)}
+.ccp-chart-card{padding:0 16px 16px}
+.ccp-chart-title{font-size:12px;font-weight:700;color:var(--g7);margin-bottom:10px}
+.ccp-chart-wrap{height:280px;position:relative}
+.ccp-top5-card{padding:0 16px 18px}
+.ccp-top5-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ccp-top5-col{background:var(--g1);border:1px solid var(--g2);border-radius:10px;overflow:hidden}
+.ccp-top5-col-title{font-size:11px;font-weight:700;color:var(--g7);padding:9px 12px;background:var(--g2);border-bottom:1px solid var(--g3)}
+@media(max-width:900px){.ccp-top5-grid{grid-template-columns:1fr}}
+.ccp-top5-title{font-size:12px;font-weight:700;color:var(--g7);margin-bottom:10px}
+.ccp-top5-table{width:100%;border-collapse:collapse;font-size:12px}
+.ccp-top5-table thead th{background:linear-gradient(90deg,var(--bd),var(--bm));color:white;padding:8px 12px;text-align:left;font-weight:700;font-size:10px;text-transform:uppercase}
+.ccp-top5-table tbody tr{border-bottom:1px solid var(--g2)}
+.ccp-top5-table tbody tr:hover{background:var(--bu)}
+.ccp-top5-table td{padding:9px 12px;color:var(--g7)}
+.ccp-rank{display:inline-block;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-weight:800;font-size:11px;color:white;background:var(--g4)}
+.ccp-rank.r1{background:#d4af37}
+.ccp-rank.r2{background:#9ca3af}
+.ccp-rank.r3{background:#b45309}
+.ccp-bar-bg{height:6px;background:var(--g2);border-radius:3px;overflow:hidden;margin-top:4px;min-width:100px}
+.ccp-bar-fill{height:100%;background:linear-gradient(90deg,var(--bd),var(--bm));border-radius:3px}
+@media(max-width:900px){.ccp-stats-grid{grid-template-columns:repeat(3,1fr)}}
+
+/* Aging type matrix table */
+.aging-type-matrix{border-top:1px solid var(--g3)}
+.atm-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--g1);border-bottom:1px solid var(--g3);font-size:11px;font-weight:700;color:var(--g7);flex-wrap:wrap}
+.atm-header input{min-width:180px}
+.atm-scroll{max-height:360px;overflow-y:auto;overflow-x:auto}
+.atm-scroll table{width:100%;border-collapse:collapse;font-size:11px}
+.atm-scroll thead th{position:sticky;top:0;background:linear-gradient(90deg,var(--bd),var(--bm));color:white;padding:8px 12px;text-align:left;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;cursor:pointer;z-index:2}
+.atm-scroll thead th:hover{opacity:0.88}
+.atm-scroll th.atm-num,.atm-scroll td.atm-num{text-align:center}
+.atm-scroll tbody tr{border-bottom:1px solid var(--g2)}
+.atm-scroll tbody tr:hover{background:var(--bu)}
+.atm-scroll td{padding:7px 12px;color:var(--g7);white-space:nowrap}
+.atm-count{display:inline-block;min-width:28px;padding:2px 8px;border-radius:9px;font-weight:700;cursor:pointer;transition:all .15s}
+.atm-count:hover{transform:scale(1.08)}
+.atm-count.zero{color:var(--g4);cursor:default}
+.atm-count.zero:hover{transform:none}
+td.atm-red .atm-count:not(.zero){background:#fee2e2;color:#dc2626}
+td.atm-amber .atm-count:not(.zero){background:#fef3c7;color:#d97706}
+td.atm-green .atm-count:not(.zero){background:#dcfce7;color:#16a34a}
+.atm-scroll td.atm-total{font-weight:700;color:var(--bd)}
+.atm-scroll tfoot td{padding:8px 12px;font-weight:700;color:var(--bd);background:var(--g1);border-top:2px solid var(--g3)}
+th.atm-red{color:#ffd9d9}
+th.atm-amber{color:#ffecc4}
+th.atm-green{color:#d3ffe6}
+
+.ab-types{margin-top:10px;display:flex;flex-direction:column;gap:3px}
+.ab-type-row{display:flex;align-items:center;justify-content:space-between;font-size:9px;color:var(--g7)}
+.ab-type-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:6px}
+.ab-type-cnt{font-weight:700;min-width:24px;text-align:right}
+.aging-band.red .ab-type-cnt{color:#dc2626}
+.aging-band.amber .ab-type-cnt{color:#d97706}
+.aging-band.green .ab-type-cnt{color:#16a34a}
+.ab-type-bar{height:3px;border-radius:2px;margin-top:1px;margin-bottom:2px}
+.aging-band.red .ab-type-bar{background:rgba(220,38,38,0.35)}
+.aging-band.amber .ab-type-bar{background:rgba(217,119,6,0.35)}
+.aging-band.green .ab-type-bar{background:rgba(22,163,74,0.35)}
+
+/* ===================== RESPONSIVE: TABLET (≤900px) ===================== */
+@media(max-width:900px){
+  .main{padding:12px}
+  .krow{grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+  .kc{padding:11px}
+  .kval{font-size:20px}
+  .kc.ktotal .kval{font-size:22px}
+  .chart-opts{gap:8px;padding:8px 10px}
+  .ccp-controls{gap:10px;padding:12px}
+  .ccp-controls select{min-width:150px}
+  .ccp-chart-wrap{height:220px}
+}
+
+/* ===================== RESPONSIVE: MOBILE (≤640px) ===================== */
+@media(max-width:640px){
+  .hdr{flex-direction:column;align-items:flex-start;gap:8px;padding:10px 14px}
+  .hr{width:100%;justify-content:space-between}
+  .htitle h1{font-size:14px}
+  .htitle p{font-size:9px}
+  .upbtn{padding:6px 10px;font-size:10px}
+
+  .fbar{padding:10px 12px;gap:8px}
+  .fg{width:100%}
+  select,input[type=text],input[type=date]{width:100%;min-width:0}
+  .fdiv{display:none}
+  .tbadge{margin-left:0;width:100%;text-align:center}
+
+  .main{padding:10px}
+  .krow{grid-template-columns:repeat(2,1fr);gap:8px}
+  .kc{padding:10px}
+  .kval{font-size:18px}
+  .kc.ktotal .kval{font-size:20px}
+  .klbl{font-size:8px}
+  .ksub{font-size:8px}
+
+  .g2,.g3{grid-template-columns:1fr;gap:10px}
+
+  .sh{font-size:11px;padding:9px 12px;flex-wrap:wrap}
+
+  table{font-size:10px}
+  thead th{padding:7px 8px;font-size:9px}
+  tbody td{padding:6px 8px;max-width:110px}
+
+  .chart-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .chart-tab{padding:8px 12px;font-size:10px}
+  .chart-opts{flex-direction:column;align-items:stretch}
+  .chart-opts select{width:100%;min-width:0}
+  .chart-wrap{padding:10px}
+  .chart-canvas-wrap{height:240px}
+
+  .aging-grid{grid-template-columns:1fr}
+  .aging-band{border-right:none;border-bottom:1px solid var(--g3)}
+  .aging-band:last-child{border-bottom:none}
+  .aging-band .ab-icon{font-size:24px}
+  .aging-band .ab-val{font-size:26px}
+
+  .atm-header{flex-direction:column;align-items:stretch}
+  .atm-header input{width:100%;min-width:0}
+  .atm-scroll table{font-size:10px}
+  .atm-scroll td,.atm-scroll thead th{padding:6px 8px}
+
+  .ccp-controls{flex-direction:column;gap:10px;padding:12px}
+  .ccp-controls .fg{width:100%}
+  .ccp-controls select{width:100%;min-width:0}
+  .ccp-stats-grid{grid-template-columns:repeat(2,1fr);gap:8px;padding:10px}
+  .ccp-stat{padding:10px}
+  .ccp-stat-val{font-size:19px}
+  .ccp-stat-lbl{font-size:9px}
+  .ccp-chart-wrap{height:200px}
+  .ccp-top5-table{font-size:11px}
+  .ccp-top5-table td,.ccp-top5-table thead th{padding:7px 8px}
+
+  .pg{flex-direction:column;align-items:stretch;gap:8px}
+  .pgb{justify-content:center}
+}
+
+/* ===================== RESPONSIVE: SMALL MOBILE (≤400px) ===================== */
+@media(max-width:400px){
+  .krow{grid-template-columns:1fr 1fr}
+  .ccp-stats-grid{grid-template-columns:1fr}
+  .kval{font-size:16px}
+}
+
+/* ===================== DESKTOP (≥1400px): a bit more breathing room ===================== */
+@media(min-width:1400px){
+  .main{max-width:1600px;margin:0 auto}
+}
+
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div class="hdr">
+  <div class="hl">
+    <div class="logo">SASOL</div>
+    <div class="htitle">
+      <h1>Rewards Customer Service — Live Dashboard</h1>
+      <p>Load an Excel file to begin | Live auto-refresh| Auto real-time counts | White &amp; Blue theme</p>
+    </div>
+  </div>
+  <div class="hr">
+    <div class="live"><div class="ldot"></div> LIVE</div>
+    <div class="clk" id="clock"></div>
+    <a href="https://myim.service-now.com/now/nav/ui/classic/params/target/sn_customerservice_sasol_rewards_list.do%3Fsysparm_userpref_module%3Dfc5d14c993b32a50415af0947aba10ba%26sysparm_clear_stack%3Dtrue" target="_blank" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);border-radius:7px;padding:6px 13px;color:white;font-size:11px;font-weight:700;text-decoration:none;transition:all 0.2s" onmouseenter="this.style.background='rgba(255,255,255,0.28)'" onmouseleave="this.style.background='rgba(255,255,255,0.15)'">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      ServiceNow
+    </a>
+    <label class="upbtn" for="fileInput">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Load New Excel
+    </label>
+    <button onclick="if(confirm('This will clear your saved data and reload the page with the default dataset. Continue?')){clearPersistedData();location.reload();}" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);border-radius:7px;padding:6px 12px;color:white;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s" onmouseenter="this.style.background='rgba(255,255,255,0.25)'" onmouseleave="this.style.background='rgba(255,255,255,0.12)'" title="Clear saved data and reload default dataset">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      Clear Saved
+    </button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls">
+  </div>
+</div>
+
+<div class="fbar">
+  <div class="fg"><label>Customer Name:</label><input type="text" id="custSearch" placeholder="Search customer name..." oninput="applyFilters()"></div>
+  <div class="fg"><label>Ref #:</label><input type="text" id="refSearch" placeholder="Search reference no..." oninput="applyFilters()" style="min-width:130px"></div>
+  <div class="fg"><label>Mobile:</label><input type="text" id="mobSearch" placeholder="Search mobile no..." oninput="applyFilters()" style="min-width:130px"></div>
+  <div class="fdiv"></div>
+  <div class="fg"><label>Agent:</label><input type="text" id="agentSearch" placeholder="Search by agent name..." oninput="applyFilters()"></div>
+  <div class="fdiv"></div>
+  <div class="fg"><label>Channel:</label><select id="fCh" onchange="applyFilters()"><option value="">All</option></select></div>
+  <div class="fg"><label>Call Type:</label><select id="fCt" onchange="applyFilters()"><option value="">All</option></select></div>
+  <div class="fg"><label>State:</label><select id="fSt" onchange="applyFilters()"><option value="">All</option></select></div>
+  <div class="fg"><label>Priority:</label><select id="fPr" onchange="applyFilters()"><option value="">All</option></select></div>
+  <div class="fdiv"></div>
+  <div class="fg"><label>From:</label><input type="date" id="fDf" onchange="applyFilters()"></div>
+  <div class="fg"><label>To:</label><input type="date" id="fDt" onchange="applyFilters()"></div>
+  <button class="rbtn" onclick="resetFilters()">&#x21BA; Reset All</button>
+  <div class="tbadge" id="tbadge">Total: 0</div>
+</div>
+
+<div class="qnav">
+  <span class="qnav-lbl">Jump to:</span>
+  <a href="#agingSection" class="qnav-link">⏱️ Case Aging</a>
+  <a href="#channelSection" class="qnav-link">📡 Channel Breakdown</a>
+  <a href="#agentChartsSection" class="qnav-link">📊 Agent Charts</a>
+  <a href="#ccpSection" class="qnav-link qnav-hl">🎧 Contact Centre Agents Performance</a>
+  <a href="#recordsSection" class="qnav-link">📄 All Records</a>
+</div>
+
+<div class="main">
+  <div class="krow">
+    <div class="kc ktotal" title="Show all records" onclick="resetFilters()" style="cursor:pointer">
+      <div class="klbl">Total Records</div><div class="kval" id="kTotal">0</div><div class="ksub">Full dataset count</div>
+    </div>
+    <div class="kc kclosed" title="Filter: Closed" onclick="filterByState('Closed')" style="cursor:pointer">
+      <div class="klbl">Closed</div><div class="kval" id="kClosed">0</div><div class="ksub" id="kClosedP">0% of total</div>
+    </div>
+    <div class="kc knew" title="Filter: New" onclick="filterByState('New')" style="cursor:pointer">
+      <div class="klbl">New</div><div class="kval" id="kNew">0</div><div class="ksub">Awaiting action</div>
+    </div>
+    <div class="kc kpend" title="Filter: Open + Pending" onclick="filterByState('Open')" style="cursor:pointer">
+      <div class="klbl">Open / Pending</div><div class="kval" id="kPend">0</div><div class="ksub">Active cases</div>
+    </div>
+    <div class="kc kcrit" title="Filter: Priority 1 - Critical" onclick="filterByPriority('1 - Critical')" style="cursor:pointer">
+      <div class="klbl">Critical (P1)</div><div class="kval" id="kCrit">0</div><div class="ksub">Highest priority</div>
+    </div>
+    <div class="kc" style="border-left-color:var(--teal,#0891b2)">
+      <div class="klbl">Agents</div><div class="kval" id="kAgents">0</div><div class="ksub">Unique agents</div>
+    </div>
+    <div class="kc" title="Filter: Resolved" onclick="filterByState('Resolved')" style="cursor:pointer;border-left-color:#0891b2">
+      <div class="klbl">Resolved</div><div class="kval" id="kResolved">0</div><div class="ksub">Completed</div>
+    </div>
+    <div class="kc" title="Filter: Awaiting Info" onclick="filterByState('Awaiting Info')" style="cursor:pointer;border-left-color:#7c3aed">
+      <div class="klbl">Awaiting Info</div><div class="kval" id="kAwaiting">0</div><div class="ksub">On hold</div>
+    </div>
+  </div>
+
+
+  <!-- Case Aging Section -->
+  <div class="aging-section" id="agingSection">
+    <div class="sh">⏱️ New / Open / Pending / Awaiting Action Case Aging — Real-Time Breakdown (Click a band to drill down)</div>
+    <div class="aging-grid">
+
+      <div class="aging-band red" onclick="toggleAgingDetail('old')">
+        <div class="ab-stripe"></div>
+        <div class="ab-icon">🔴</div>
+        <div class="ab-label">Overdue — Older than 2 Months</div>
+        <div class="ab-val" id="agOld">0</div>
+        <div class="ab-sub">Cases open &gt; 60 days — urgent attention</div>
+        <div class="ab-bar" id="agOldBar" style="width:0%"></div>
+        <div class="ab-pct" id="agOldPct">0% of open cases</div>
+        <div class="ab-types" id="agOldTypes"></div>
+      </div>
+
+      <div class="aging-band amber" onclick="toggleAgingDetail('mid')">
+        <div class="ab-stripe"></div>
+        <div class="ab-icon">🟡</div>
+        <div class="ab-label">Aging — 1 to 2 Months</div>
+        <div class="ab-val" id="agMid">0</div>
+        <div class="ab-sub">Cases open 30–60 days — monitor closely</div>
+        <div class="ab-bar" id="agMidBar" style="width:0%"></div>
+        <div class="ab-pct" id="agMidPct">0% of open cases</div>
+        <div class="ab-types" id="agMidTypes"></div>
+      </div>
+
+      <div class="aging-band green" onclick="toggleAgingDetail('rec')">
+        <div class="ab-stripe"></div>
+        <div class="ab-icon">🟢</div>
+        <div class="ab-label">Recent — Less than 1 Month</div>
+        <div class="ab-val" id="agRec">0</div>
+        <div class="ab-sub">Cases open &lt; 30 days, plus all New and Awaiting Action cases — within SLA</div>
+        <div class="ab-bar" id="agRecBar" style="width:0%"></div>
+        <div class="ab-pct" id="agRecPct">0% of open cases</div>
+        <div class="ab-newcount">🆕 New: <span id="agRecNewCount">0</span> cases</div>
+        <div class="ab-types" id="agRecTypes"></div>
+      </div>
+
+    </div>
+
+    <!-- Cases per Type, broken down by age bucket -->
+    <div class="aging-type-matrix">
+      <div class="atm-header">
+        <span>📋 Open / Pending Cases per Type — by Age Bucket <span style="opacity:.7;font-weight:500">(click a count to drill down)</span></span>
+        <input type="text" id="atmSearch" placeholder="Search call type..." oninput="renderAgingTypeMatrix()">
+      </div>
+      <div class="atm-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="atm-sortable" onclick="sortAgingMatrix('type')">Call Type <span id="atmSortType"></span></th>
+              <th class="atm-sortable atm-num atm-red" onclick="sortAgingMatrix('old')">🔴 &gt; 2 Months <span id="atmSortOld"></span></th>
+              <th class="atm-sortable atm-num atm-amber" onclick="sortAgingMatrix('mid')">🟡 1–2 Months <span id="atmSortMid"></span></th>
+              <th class="atm-sortable atm-num atm-green" onclick="sortAgingMatrix('rec')">🟢 &lt; 1 Month <span id="atmSortRec"></span></th>
+              <th class="atm-sortable atm-num" onclick="sortAgingMatrix('total')">Total Open <span id="atmSortTotal"></span></th>
+            </tr>
+          </thead>
+          <tbody id="atmBody"></tbody>
+          <tfoot id="atmFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="aging-detail" id="agingDetail" style="display:none">
+      <div class="aging-detail-header">
+        <span id="agingDetailTitle">Cases</span>
+        <button class="aging-detail-close" onclick="document.getElementById('agingDetail').style.display='none'">✕ Close</button>
+      </div>
+      <div class="aging-detail-scroll">
+        <table>
+          <thead><tr>
+            <th>Ref #</th><th>Customer</th><th>Mobile</th><th>Call Type</th>
+            <th>State</th><th>Priority</th><th>Opened</th><th>Days Open</th><th>Opened By</th>
+          </tr></thead>
+          <tbody id="agingDetailBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Channel Breakdown Panel -->
+  <div id="channelSection" style="background:white;border-radius:10px;box-shadow:var(--sh);overflow:hidden;margin-bottom:14px">
+    <div class="sh">📡 Channel Breakdown — Click any row or tile to filter</div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;font-size:11px;border-collapse:collapse">
+        <thead>
+          <tr style="background:linear-gradient(90deg,var(--bd),var(--bm))">
+            <th style="color:white;padding:9px 14px;text-align:left;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:0.4px;white-space:nowrap">Channel</th>
+            <th style="color:white;padding:9px 10px;text-align:center;font-weight:700;font-size:10px;text-transform:uppercase;cursor:pointer" title="All — click to filter">All</th>
+            <th style="color:white;padding:9px 10px;text-align:center;font-weight:700;font-size:10px;text-transform:uppercase">Closed</th>
+            <th style="color:white;padding:9px 10px;text-align:center;font-weight:700;font-size:10px;text-transform:uppercase">New</th>
+            <th style="color:white;padding:9px 10px;text-align:center;font-weight:700;font-size:10px;text-transform:uppercase">Open</th>
+            <th style="color:white;padding:9px 10px;text-align:center;font-weight:700;font-size:10px;text-transform:uppercase">Pending</th>
+            <th style="color:white;padding:9px 10px;text-align:center;font-weight:700;font-size:10px;text-transform:uppercase">Awaiting</th>
+            <th style="color:white;padding:9px 10px;text-align:center;font-weight:700;font-size:10px;text-transform:uppercase">Resolved</th>
+            <th style="color:white;padding:9px 10px;text-align:center;font-weight:700;font-size:10px;text-transform:uppercase">Cancelled</th>
+            <th style="color:white;padding:9px 10px;text-align:center;font-weight:700;font-size:10px;text-transform:uppercase">%</th>
+            <th style="color:white;padding:9px 10px;text-align:left;font-weight:700;font-size:10px;text-transform:uppercase">Bar</th>
+          </tr>
+        </thead>
+        <tbody id="chTableBody"></tbody>
+        <tfoot id="chTableFoot"></tfoot>
+      </table>
+    </div>
+    <!-- Mini tiles below table -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0;border-top:2px solid var(--g3)">
+      <div style="padding:12px 14px;border-right:1px solid var(--g3);cursor:pointer;transition:background 0.2s;text-align:center" onclick="filterByChannel('Phone')" onmouseenter="this.style.background='var(--bu)'" onmouseleave="this.style.background=''">
+        <div style="font-size:18px">📞</div>
+        <div style="font-size:9px;font-weight:700;color:var(--bd);text-transform:uppercase;margin-top:2px">Phone</div>
+        <div style="font-size:22px;font-weight:800;color:var(--bd)" id="chPhone">0</div>
+        <div style="font-size:9px;color:var(--g5)" id="chPhoneP">0%</div>
+      </div>
+      <div style="padding:12px 14px;border-right:1px solid var(--g3);cursor:pointer;transition:background 0.2s;text-align:center" onclick="filterByChannel('Email')" onmouseenter="this.style.background='var(--bu)'" onmouseleave="this.style.background=''">
+        <div style="font-size:18px">📧</div>
+        <div style="font-size:9px;font-weight:700;color:var(--bd);text-transform:uppercase;margin-top:2px">Email</div>
+        <div style="font-size:22px;font-weight:800;color:var(--bd)" id="chEmail">0</div>
+        <div style="font-size:9px;color:var(--g5)" id="chEmailP">0%</div>
+      </div>
+      <div style="padding:12px 14px;border-right:1px solid var(--g3);cursor:pointer;transition:background 0.2s;text-align:center" onclick="filterByChannel('Mobile App')" onmouseenter="this.style.background='var(--bu)'" onmouseleave="this.style.background=''">
+        <div style="font-size:18px">📱</div>
+        <div style="font-size:9px;font-weight:700;color:var(--bd);text-transform:uppercase;margin-top:2px">Mobile App</div>
+        <div style="font-size:22px;font-weight:800;color:var(--bd)" id="chMobile">0</div>
+        <div style="font-size:9px;color:var(--g5)" id="chMobileP">0%</div>
+      </div>
+      <div style="padding:12px 14px;cursor:pointer;transition:background 0.2s;text-align:center" onclick="filterByChannel('__blank__')" onmouseenter="this.style.background='var(--bu)'" onmouseleave="this.style.background=''">
+        <div style="font-size:18px">❓</div>
+        <div style="font-size:9px;font-weight:700;color:var(--g5);text-transform:uppercase;margin-top:2px">Blank</div>
+        <div style="font-size:22px;font-weight:800;color:var(--g5)" id="chBlank">0</div>
+        <div style="font-size:9px;color:var(--g5)" id="chBlankP">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="sc"><div class="sh">📋 State Summary</div><div class="sb" id="sSt"></div></div>
+    <div class="sc"><div class="sh">⚡ Priority Summary</div><div class="sb" id="sPr"></div></div>
+    <div class="sc"><div class="sh">📡 Channel Summary</div><div class="sb" id="sCh"></div></div>
+  </div>
+  <div class="g2">
+    <div class="sc"><div class="sh">🔧 Service Summary</div><div class="sb" id="sSv"></div></div>
+    <div class="sc"><div class="sh">📁 Category Summary</div><div class="sb" id="sCa"></div></div>
+  </div>
+  <div class="g2">
+    <div class="sc"><div class="sh">🎯 Call Purpose Summary</div><div class="sb" id="sCp"></div></div>
+    <div class="sc"><div class="sh">📱 Call Type Summary</div><div class="sb" id="sCt2"></div></div>
+  </div>
+
+  <div class="asc2">
+    <div class="sh">👤 Agent Count Summary — Opened By (counts from full data)</div>
+    <div class="ascroll">
+      <table>
+        <thead><tr>
+          <th onclick="sortAgt('name')">Agent Name ↕</th>
+          <th onclick="sortAgt('total')">Total ↕</th>
+          <th onclick="sortAgt('closed')">Closed ↕</th>
+          <th onclick="sortAgt('open')">Open ↕</th>
+          <th onclick="sortAgt('new')">New ↕</th>
+          <th onclick="sortAgt('pending')">Pending ↕</th>
+          <th onclick="sortAgt('awaiting')">Awaiting Info ↕</th>
+          <th onclick="sortAgt('resolved')">Resolved ↕</th>
+          <th onclick="sortAgt('cancelled')">Cancelled ↕</th>
+          <th>% Closed</th>
+        </tr></thead>
+        <tbody id="agtBody"></tbody>
+      </table>
+    </div>
+    <div class="pg">
+      <div class="pgi" id="agtInfo"></div>
+      <div class="pgb" id="agtPg"></div>
+    </div>
+  </div>
+
+
+  <!-- Agent Charts Section -->
+  <div class="chart-section" id="agentChartsSection">
+    <div class="sh">📊 Agent Performance Charts — 3D Bar &amp; Line View</div>
+    <div class="chart-tabs">
+      <div class="chart-tab active" onclick="switchChartTab('bar3d',this)">🏛️ 3D Bar Chart</div>
+      <div class="chart-tab" onclick="switchChartTab('line3d',this)">📈 3D Line Chart</div>
+      <div class="chart-tab" onclick="switchChartTab('grouped',this)">📊 Grouped Bar</div>
+      <div class="chart-tab" onclick="switchChartTab('stacked',this)">📦 Stacked Bar</div>
+    </div>
+    <div class="chart-opts">
+      <label>Top agents:</label>
+      <select id="chartTopN" onchange="renderAgentCharts()">
+        <option value="10">Top 10</option>
+        <option value="15">Top 15</option>
+        <option value="20">Top 20</option>
+        <option value="30">Top 30</option>
+        <option value="999">All</option>
+      </select>
+      <label>Sort by:</label>
+      <select id="chartSortBy" onchange="renderAgentCharts()">
+        <option value="total">Total</option>
+        <option value="closed">Closed</option>
+        <option value="open">Open</option>
+        <option value="new">New</option>
+      </select>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-canvas-wrap"><canvas id="agentBarChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Contact Centre Agents Performance -->
+  <div class="ccp-section" id="ccpSection">
+    <div class="sh">🎧 Contact Centre Agents Performance</div>
+
+    <div class="ccp-controls">
+      <div class="fg">
+        <label>Select Agent:</label>
+        <select id="ccpAgentSelect" onchange="renderCCP()">
+          <option value="__ALL__">🌐 All Agents (Combined)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Status:</label>
+        <select id="ccpStatusSelect" onchange="renderCCP()">
+          <option value="__ALL__">All Statuses</option>
+          <option value="New">🆕 New</option>
+          <option value="Open">🟢 Open</option>
+          <option value="Pending">🟡 Pending</option>
+          <option value="Awaiting Action">🟣 Awaiting Action</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Overview:</label>
+        <select id="ccpOverviewMode" onchange="renderCCP()">
+          <option value="daily">📅 Daily (last 30 days)</option>
+          <option value="monthly">🗓️ Monthly</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>📆 Date Range:</label>
+        <div class="ccp-daterange">
+          <input type="date" id="ccpDateFrom" onchange="renderCCP()">
+          <span>to</span>
+          <input type="date" id="ccpDateTo" onchange="renderCCP()">
+        </div>
+      </div>
+      <div class="fg">
+        <label>&nbsp;</label>
+        <button class="ccp-clearbtn" onclick="clearCCPDateRange()">✕ Clear Range</button>
+      </div>
+    </div>
+
+    <!-- 1, 3, 4: Ticket counts & rates for selected agent -->
+    <div class="ccp-stats-grid">
+      <div class="ccp-stat ccp-stat-range">
+        <div class="ccp-stat-lbl">📆 Tickets in Selected Range</div>
+        <div class="ccp-stat-val" id="ccpRangeCount">0</div>
+        <div class="ccp-stat-sub" id="ccpRangeSub">All time</div>
+      </div>
+      <div class="ccp-stat">
+        <div class="ccp-stat-lbl">Tickets Logged — This Minute</div>
+        <div class="ccp-stat-val" id="ccpMinuteCount">0</div>
+      </div>
+      <div class="ccp-stat">
+        <div class="ccp-stat-lbl">Tickets Logged — Today</div>
+        <div class="ccp-stat-val" id="ccpDayCount">0</div>
+      </div>
+      <div class="ccp-stat">
+        <div class="ccp-stat-lbl">Tickets Logged — This Month</div>
+        <div class="ccp-stat-val" id="ccpMonthCount">0</div>
+      </div>
+      <div class="ccp-stat">
+        <div class="ccp-stat-lbl">Avg Tickets / Hour</div>
+        <div class="ccp-stat-val" id="ccpAvgHour">0</div>
+      </div>
+      <div class="ccp-stat">
+        <div class="ccp-stat-lbl">Avg Tickets / Minute</div>
+        <div class="ccp-stat-val" id="ccpAvgMinute">0</div>
+      </div>
+      <div class="ccp-stat ccp-stat-warn">
+        <div class="ccp-stat-lbl">Still New / Open</div>
+        <div class="ccp-stat-val" id="ccpOpenCount">0</div>
+      </div>
+    </div>
+
+    <!-- 2: Daily & monthly overview graph -->
+    <div class="ccp-chart-card">
+      <div class="ccp-chart-title" id="ccpChartTitle">📈 Daily Ticket Volume — Last 30 Days</div>
+      <div class="ccp-chart-wrap"><canvas id="ccpOverviewChart"></canvas></div>
+    </div>
+
+    <!-- 5: Top 5 agents leaderboard — Day / Week / Month, all at once -->
+    <div class="ccp-top5-card">
+      <div class="ccp-top5-title">🏆 Top 5 Agents Logging Tickets<span id="ccpTop5StatusLbl"></span></div>
+      <div class="ccp-top5-grid">
+        <div class="ccp-top5-col">
+          <div class="ccp-top5-col-title">📅 Per Day (Today)</div>
+          <table class="ccp-top5-table">
+            <thead><tr><th>Rank</th><th>Agent</th><th>Tickets</th><th></th></tr></thead>
+            <tbody id="ccpTop5BodyDay"></tbody>
+          </table>
+        </div>
+        <div class="ccp-top5-col">
+          <div class="ccp-top5-col-title">📆 Per Week (Last 7 Days)</div>
+          <table class="ccp-top5-table">
+            <thead><tr><th>Rank</th><th>Agent</th><th>Tickets</th><th></th></tr></thead>
+            <tbody id="ccpTop5BodyWeek"></tbody>
+          </table>
+        </div>
+        <div class="ccp-top5-col">
+          <div class="ccp-top5-col-title">🗓️ Per Month (This Month)</div>
+          <table class="ccp-top5-table">
+            <thead><tr><th>Rank</th><th>Agent</th><th>Tickets</th><th></th></tr></thead>
+            <tbody id="ccpTop5BodyMonth"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tc" id="recordsSection">
+    <div class="sh">📄 All Records Table</div>
+    <div class="tscroll">
+      <table>
+        <thead><tr>
+          <th onclick="sortRec('n')">Ref # ↕</th>
+          <th onclick="sortRec('ch')">Channel ↕</th>
+          <th onclick="sortRec('m')">Mobile ↕</th>
+          <th onclick="sortRec('nm')">Customer ↕</th>
+          <th onclick="sortRec('ct')">Call Type ↕</th>
+          <th onclick="sortRec('st')">State ↕</th>
+          <th onclick="sortRec('pr')">Priority ↕</th>
+          <th onclick="sortRec('op')">Opened ↕</th>
+          <th onclick="sortRec('ob')">Opened By ↕</th>
+          <th onclick="sortRec('cp')">Call Purpose ↕</th>
+          <th onclick="sortRec('sv')">Service ↕</th>
+        </tr></thead>
+        <tbody id="recBody"></tbody>
+      </table>
+    </div>
+    <div class="pg">
+      <div class="pgi" id="recInfo"></div>
+      <div class="pgb" id="recPg"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+
+const EMBEDDED_DATA = [{"n":"SRW0000088","ch":"Mobile App","m":"+27746629061","fn":"timothy","sn":"molefe","ct":"Sasol Rewards Mobile App Query","st":"Closed","pr":"4 - Low","op":"2025-11-14T09:58:33","ob":"Andisa Hadebe","cp":"Queries","sv":"Sasol Rewards Programme","ca":"Query","sd":"she was unable to get a OTP from the app","ag":"Andisa Hadebe"},{"n":"SRW0000089","ch":"Phone","m":"+27781765754","fn":"Jabulani","sn":"Sithole","ct":"Number Change","st":"Closed","pr":"3 - Moderate","op":"2025-11-14T10:01:11","ob":"Ryu Pillay","cp":"Queries","sv":"Sasol Rewards Programme","ca":"Request","sd":"Number change. 0768688656","ag":"Ryu Pillay"},{"n":"SRW0000089","ch":"Phone","m":"+27781765754","fn":"Jabulani","sn":"Sithole","ct":"Number Change","st":"Closed","pr":"3 - Moderate","op":"2025-11-14T10:01:11","ob":"Ryu Pillay","cp":"Queries","sv":"Sasol Rewards Programme","ca":"Request","sd":"Number change. 0768688656","ag":""},{"n":"SRW0000093","ch":"Phone","m":"+27615446150","fn":"PALESA","sn":"TSIMONG","ct":"Number Change","st":"Closed","pr":"4 - Low","op":"2025-11-14T10:37:01","ob":"Andisa Hadebe","cp":"Queries","sv":"Sasol Rewards Programme","ca":"Request","sd":"call for the second time to change cell phone number","ag":"Andisa Hadebe"},{"n":"SRW0000095","ch":"Phone","m":"+27827644603","fn":"NTOMBIFUTHI","sn":"MAGUDULE","ct":"OTP Redemption","st":"Closed","pr":"4 - Low","op":"2025-11-14T11:10:24","ob":"Ryu Pillay","cp":"Customer Experience Issues","sv":"Sasol Rewards Programme","ca":"Query","sd":"Customer could not get OTP","ag":"Ryu Pillay"},{"n":"SRW0000097","ch":"Phone","m":"+27825501874","fn":"BONGANI","sn":"KABINI","ct":"Number Change","st":"Closed","pr":"3 - Moderate","op":"2025-11-14T11:54:03","ob":"Ryu Pillay","cp":"Queries","sv":"Sasol Rewards Programme","ca":"Request","sd":"number change. 0839966983","ag":"Ryu Pillay"},{"n":"SRW0000098","ch":"Phone","m":"+27743543129","fn":"Magiel","sn":"Hendrikz","ct":"Number Change","st":"Closed","pr":"2 - High","op":"2025-11-14T13:26:40","ob":"Ryu Pillay","cp":"Queries","sv":"Sasol Rewards Programme","ca":"Request","sd":"New number short","ag":"Ryu Pillay"},{"n":"SRW0000101","ch":"Phone","m":"+27788672662","fn":"enest","sn":"walaza","ct":"Number Change","st":"Closed","pr":"3 - Moderate","op":"2025-11-14T13:38:17","ob":"Nothando Dubazana","cp":"Queries","sv":"Sasol Rewards Programme","ca":"Request","sd":"NEW NUMBER - 0786989521","ag":"Nothando Dubazana"}];
+let recSort = {col:'op', dir:-1};
+let agtSort = {col:'total', dir:-1};
+let recPage = 1, recPS = 100;
+let agtPage = 1, agtPS = 50;
+let agtData = [];
+let agentChartInstance = null;
+let ccpChartInstance = null;
+let currentChartType = 'bar3d';
+let agingBuckets = {old:[], mid:[], rec:[]};
+let currentAgingBucket = null;
+let atmSortCol = 'old';
+let atmSortDir = -1; // -1 desc, 1 asc
+let atmActiveFilter = null; // {bucket, type}
+
+async function init() {
+  await loadPersistedData();
+  buildFilters();
+  applyFilters();
+  setInterval(() => {
+    const d = new Date();
+    document.getElementById('clock').textContent = d.toLocaleString('en-ZA',{dateStyle:'medium',timeStyle:'medium'});
+  }, 1000);
+  document.getElementById('clock').textContent = new Date().toLocaleString('en-ZA',{dateStyle:'medium',timeStyle:'medium'});
+}
+
+// ---- LOCALSTORAGE PERSISTENCE ----
+const STORAGE_KEY = 'sasol_dashboard_data_v1';
+const STORAGE_META_KEY = 'sasol_dashboard_meta_v1';
+const IDB_NAME = 'sasol_dashboard_db';
+const IDB_STORE = 'data_store';
+
+// IndexedDB has a much larger quota than localStorage (hundreds of MB vs ~5-10MB),
+// so it's used as the primary store for large datasets. localStorage just holds
+// small metadata so we can show "records loaded" info instantly on page load.
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbSet(key, value) {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(value, key);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function idbGet(key) {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbDelete(key) {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).delete(key);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function saveToStorage(data, filename) {
+  // Use IndexedDB ONLY — localStorage quota is only ~5-10MB and fails for large files
+  // IndexedDB supports hundreds of MB with no quota issues
+  try {
+    await idbSet(STORAGE_KEY, data);
+    // Only store tiny metadata in localStorage (filename, date, count — a few bytes)
+    localStorage.setItem(STORAGE_META_KEY, JSON.stringify({
+      filename: filename || 'Uploaded file',
+      savedAt: new Date().toISOString(),
+      recordCount: data.length
+    }));
+    return true;
+  } catch (e) {
+    console.error('IndexedDB save failed:', e);
+    return false;
+  }
+}
+
+async function loadPersistedData() {
+  try {
+    const metaRaw = localStorage.getItem(STORAGE_META_KEY);
+
+    if (metaRaw) {
+      // Load full dataset from IndexedDB (previous session)
+      const data = await idbGet(STORAGE_KEY);
+      if (Array.isArray(data) && data.length > 0) {
+        ALL_DATA = data;
+        filtered = [...ALL_DATA];
+        const meta = JSON.parse(metaRaw);
+        const dateStr = meta.savedAt ? new Date(meta.savedAt).toLocaleDateString('en-ZA') : '';
+        document.querySelector('.htitle p').textContent =
+          ALL_DATA.length.toLocaleString() + ' records — ' + meta.filename +
+          (dateStr ? ' (saved ' + dateStr + ')' : '') + ' | Live auto-refresh';
+        showToast('📂 Restored ' + ALL_DATA.length.toLocaleString() + ' records from last session');
+        return; // loaded from IDB — done
+      }
+    }
+    // No saved session — dashboard stays at 0, waiting for file upload
+    document.querySelector('.htitle p').textContent = 'Load an Excel file to begin | Live auto-refresh';
+  } catch (e) {
+    console.error('Failed to load persisted data:', e);
+    try { localStorage.removeItem(STORAGE_META_KEY); await idbDelete(STORAGE_KEY); } catch(_) {}
+    document.querySelector('.htitle p').textContent = 'Load an Excel file to begin | Live auto-refresh';
+  }
+}
+
+async function clearPersistedData() {
+  try {
+    localStorage.removeItem(STORAGE_META_KEY);
+    await idbDelete(STORAGE_KEY);
+  } catch (e) {
+    console.error('Failed to clear storage:', e);
+  }
+}
+
+function buildFilters() {
+  fillSelect('fCh', 'ch');
+  fillSelect('fCt', 'ct');
+  fillSelect('fSt', 'st');
+  fillSelect('fPr', 'pr');
+  fillCcpAgentSelect();
+}
+
+function fillCcpAgentSelect() {
+  const el = document.getElementById('ccpAgentSelect');
+  if (!el) return;
+  const prevVal = el.value || '__ALL__';
+  el.innerHTML = '<option value="__ALL__">🌐 All Agents (Combined)</option>';
+  const agents = [...new Set(ALL_DATA.map(r => (r.ob||'').trim()).filter(Boolean))].sort();
+  agents.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; el.appendChild(o); });
+  el.value = agents.includes(prevVal) || prevVal === '__ALL__' ? prevVal : '__ALL__';
+}
+
+function fillSelect(id, key) {
+  const el = document.getElementById(id);
+
+  if (id === 'fCh') {
+    // Channel dropdown: always show fixed options + any extra ones from data
+    el.innerHTML = '<option value="">All Channels</option>';
+    // Fixed channel options always present
+    const fixed = ['Email','Phone','Mobile App'];
+    const chLabels = {'Email':'📧 Email','Phone':'📞 Phone','Mobile App':'📱 Mobile App'};
+    fixed.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v;
+      o.textContent = chLabels[v] || v;
+      el.appendChild(o);
+    });
+    // Any other channel values from the actual data not already listed
+    const extra = [...new Set(ALL_DATA.map(r => (r[key]||'').trim())
+      .filter(v => v && !fixed.map(f=>f.toLowerCase()).includes(v.toLowerCase())))].sort();
+    extra.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; el.appendChild(o); });
+    // Always add Blank at the end
+    const o = document.createElement('option');
+    o.value = '__blank__'; o.textContent = '❓ Blank';
+    el.appendChild(o);
+  } else {
+    el.innerHTML = '<option value="">All</option>';
+    const vals = [...new Set(ALL_DATA.map(r => r[key]).filter(Boolean))].sort();
+    vals.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; el.appendChild(o); });
+  }
+}
+
+function applyFilters() {
+  const cust = document.getElementById('custSearch').value.trim().toLowerCase();
+  const ref = document.getElementById('refSearch').value.trim().toLowerCase();
+  const mob = document.getElementById('mobSearch').value.trim().replace(/\s+/g,'');
+  const ag = document.getElementById('agentSearch').value.trim().toLowerCase();
+  const ch = document.getElementById('fCh').value;
+  const ct = document.getElementById('fCt').value;
+  const st = document.getElementById('fSt').value;
+  const pr = document.getElementById('fPr').value;
+  const df = document.getElementById('fDf').value;
+  const dt = document.getElementById('fDt').value;
+
+  filtered = ALL_DATA.filter(r => {
+    if (cust && !((r.fn||'')+' '+(r.sn||'')).toLowerCase().includes(cust)) return false;
+    if (ref && !(r.n||'').toLowerCase().includes(ref)) return false;
+    if (mob && !(r.m||'').replace(/\s+/g,'').includes(mob)) return false;
+    if (ag && !(r.ob||'').toLowerCase().includes(ag)) return false;
+    if (ch === '__blank__') { if ((r.ch||'').trim()) return false; }
+    else if (ch && r.ch !== ch) return false;
+    if (ct && r.ct !== ct) return false;
+    if (st && r.st !== st) return false;
+    if (pr && r.pr !== pr) return false;
+    if (df && (r.op||'') < df) return false;
+    if (dt && (r.op||'') > dt + ' 23:59:59') return false;
+    return true;
+  });
+
+  recPage = 1; agtPage = 1;
+  render();
+}
+
+function resetFilters() {
+  ['custSearch','refSearch','mobSearch','agentSearch'].forEach(id => document.getElementById(id).value = '');
+  ['fCh','fCt','fSt','fPr'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fDf').value = '';
+  document.getElementById('fDt').value = '';
+  applyFilters();
+}
+
+// Animated count-up for KPI cards
+const _countTimers = {};
+function animateCount(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (_countTimers[id]) clearInterval(_countTimers[id]);
+  const start = parseInt(el.textContent.replace(/[^0-9]/g,'')) || 0;
+  if (start === target) { el.textContent = target.toLocaleString(); return; }
+  const duration = 600;
+  const steps = 30;
+  const diff = target - start;
+  let step = 0;
+  _countTimers[id] = setInterval(() => {
+    step++;
+    const val = Math.round(start + diff * (step/steps));
+    el.textContent = val.toLocaleString();
+    if (step >= steps) {
+      clearInterval(_countTimers[id]);
+      el.textContent = target.toLocaleString();
+    }
+  }, duration/steps);
+}
+
+function render() {
+  const n = filtered.length;
+  document.getElementById('tbadge').textContent = 'Total: ' + n.toLocaleString();
+
+  // If no data loaded yet — keep everything at 0 and show placeholder panels
+  if (ALL_DATA.length === 0) {
+    ['kTotal','kClosed','kNew','kPend','kCrit','kAgents','kResolved','kAwaiting'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.textContent = '0';
+    });
+    document.getElementById('kClosedP').textContent = '—';
+    const placeholder = '<div style="color:#94a3b8;font-size:11px;padding:16px;text-align:center">📂 Load an Excel file to see data</div>';
+    ['sSt','sPr','sCh','sSv','sCa','sCp','sCt2'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.innerHTML = placeholder;
+    });
+    const agtB = document.getElementById('agtBody'); if (agtB) agtB.innerHTML = '';
+    const recB = document.getElementById('recBody'); if (recB) recB.innerHTML = '';
+    const recI = document.getElementById('recInfo'); if (recI) recI.textContent = '';
+    const agtI = document.getElementById('agtInfo'); if (agtI) agtI.textContent = '';
+    // Aging — reset to 0
+    ['agOld','agMid','agRec'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent='0'; });
+    ['agOldBar','agMidBar','agRecBar'].forEach(id => { const el = document.getElementById(id); if(el) el.style.width='0%'; });
+    ['agOldPct','agMidPct','agRecPct'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent='0% of open/pending'; });
+    ['agOldTypes','agMidTypes','agRecTypes'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML=''; });
+    const agRecNewEl = document.getElementById('agRecNewCount'); if (agRecNewEl) agRecNewEl.textContent = '0';
+    const atmB = document.getElementById('atmBody'); if (atmB) atmB.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:16px">📂 Load an Excel file to see data</td></tr>';
+    const atmF = document.getElementById('atmFoot'); if (atmF) atmF.innerHTML = '';
+    // Channel tiles — reset to 0
+    ['chPhone','chEmail','chMobile','chBlank'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent='0'; });
+    ['chPhoneP','chEmailP','chMobileP','chBlankP'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent='0%'; });
+    const chTb = document.getElementById('chTableBody'); if(chTb) chTb.innerHTML = `<tr><td colspan="11" style="text-align:center;color:#94a3b8;padding:20px;font-size:11px">📂 Load an Excel file to see channel data</td></tr>`;
+    const chTf = document.getElementById('chTableFoot'); if(chTf) chTf.innerHTML = '';
+    if (agentChartInstance) { agentChartInstance.destroy(); agentChartInstance = null; }
+    if (ccpChartInstance) { ccpChartInstance.destroy(); ccpChartInstance = null; }
+    ['ccpMinuteCount','ccpDayCount','ccpMonthCount','ccpAvgHour','ccpAvgMinute','ccpOpenCount'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.textContent = '0';
+    });
+    const ccpEmptyMsg = '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:14px;font-size:11px">📂 Load an Excel file to see data</td></tr>';
+    ['ccpTop5BodyDay','ccpTop5BodyWeek','ccpTop5BodyMonth'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.innerHTML = ccpEmptyMsg;
+    });
+    return;
+  }
+
+  const bySt = cntBy('st');
+  const byPr = cntBy('pr');
+  const closed = bySt['Closed']||0;
+  const nw = bySt['New']||0;
+  const pend = (bySt['Pending']||0)+(bySt['Open']||0);
+  const crit = byPr['1 - Critical']||0;
+  const agents = new Set(filtered.map(r=>r.ob).filter(Boolean)).size;
+  const resolved = bySt['Resolved']||0;
+  const awaiting = bySt['Awaiting Info']||0;
+
+  animateCount('kTotal', n);
+  animateCount('kClosed', closed);
+  document.getElementById('kClosedP').textContent = n ? (closed/n*100).toFixed(1)+'% of total' : '-';
+  animateCount('kNew', nw);
+  animateCount('kPend', pend);
+  animateCount('kCrit', crit);
+  animateCount('kAgents', agents);
+  animateCount('kResolved', resolved);
+  animateCount('kAwaiting', awaiting);
+
+  renderSum('sSt', bySt);
+  renderSum('sPr', byPr);
+  renderSum('sCh', cntBy('ch'));
+  renderSum('sSv', cntBy('sv'));
+  renderSum('sCa', cntBy('ca'));
+  renderSum('sCp', cntBy('cp'));
+  renderSum('sCt2', cntBy('ct'));
+
+  buildAgtData();
+  renderRec();
+  renderAging();
+  renderChannelBreakdown();
+  renderCCP();
+}
+
+
+function cntBy(key) {
+  const m = {};
+  filtered.forEach(r => {
+    const v = r[key]||'(blank)';
+    m[v] = (m[v]||0) + 1;
+  });
+  return m;
+}
+
+function renderSum(id, counts) {
+  const el = document.getElementById(id);
+  const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const total = entries.reduce((s,[,v])=>s+v,0);
+  const max = entries[0]?entries[0][1]:1;
+  el.innerHTML = entries.map(([k,v]) => {
+    const pct = total?(v/total*100).toFixed(1):0;
+    const bw = (v/max*100).toFixed(1);
+    return `<div class="sr"><div class="rl" title="${k}">${k}</div><div class="rbw"><div class="rbb"><div class="rbf" style="width:${bw}%"></div></div></div><div class="rc">${v.toLocaleString()}</div><div class="rp">${pct}%</div></div>`;
+  }).join('') || '<div style="color:#94a3b8;font-size:11px;padding:10px;text-align:center">No data</div>';
+}
+
+// Agent summary
+function buildAgtData() {
+  const m = {};
+  filtered.forEach(r => {
+    const a = r.ob || '(blank)';
+    if (!m[a]) m[a] = {name:a,total:0,closed:0,open:0,new:0,pending:0,awaiting:0,resolved:0,cancelled:0};
+    m[a].total++;
+    const s = r.st;
+    if (s==='Closed') m[a].closed++;
+    else if (s==='Open') m[a].open++;
+    else if (s==='New') m[a].new++;
+    else if (s==='Pending') m[a].pending++;
+    else if (s==='Awaiting Info') m[a].awaiting++;
+    else if (s==='Resolved') m[a].resolved++;
+    else if (s==='Cancelled') m[a].cancelled++;
+  });
+  agtData = Object.values(m);
+  sortAndRenderAgt();
+}
+
+function sortAgt(col) {
+  agtSort.dir = agtSort.col===col ? agtSort.dir*-1 : -1;
+  agtSort.col = col;
+  agtPage = 1;
+  sortAndRenderAgt();
+}
+
+function sortAndRenderAgt() {
+  const {col,dir} = agtSort;
+  agtData.sort((a,b) => col==='name' ? dir*a.name.localeCompare(b.name) : dir*(a[col]-b[col]));
+  const total = agtData.length;
+  const start = (agtPage-1)*agtPS;
+  const page = agtData.slice(start, start+agtPS);
+  const tbody = document.getElementById('agtBody');
+  tbody.innerHTML = page.map(a => {
+    const pct = a.total?(a.closed/a.total*100).toFixed(1):'0.0';
+    return `<tr><td title="${a.name}">${a.name}</td><td><strong>${a.total.toLocaleString()}</strong></td><td>${a.closed.toLocaleString()}</td><td>${a.open.toLocaleString()}</td><td>${a.new.toLocaleString()}</td><td>${a.pending.toLocaleString()}</td><td>${a.awaiting.toLocaleString()}</td><td>${a.resolved.toLocaleString()}</td><td>${a.cancelled.toLocaleString()}</td><td>${pct}%</td></tr>`;
+  }).join('');
+  document.getElementById('agtInfo').textContent = `Showing ${start+1}–${Math.min(start+agtPS,total)} of ${total} agents`;
+  if(typeof renderAgentCharts==='function') renderAgentCharts();
+  makePg('agtPg', total, agtPage, agtPS, p=>{agtPage=p;sortAndRenderAgt();});
+}
+
+// Records table
+let recData = [];
+function renderRec() {
+  recData = [...filtered];
+  sortAndRenderRec();
+}
+
+function sortRec(col) {
+  recSort.dir = recSort.col===col ? recSort.dir*-1 : -1;
+  recSort.col = col;
+  recPage = 1;
+  sortAndRenderRec();
+}
+
+function sortAndRenderRec() {
+  const {col,dir} = recSort;
+  const k = col==='nm' ? null : col;
+  recData.sort((a,b) => {
+    let va = k ? (a[k]||'') : ((a.fn||'')+' '+(a.sn||''));
+    let vb = k ? (b[k]||'') : ((b.fn||'')+' '+(b.sn||''));
+    return typeof va==='string' ? dir*va.localeCompare(vb) : dir*(va-vb);
+  });
+  const total = recData.length;
+  const start = (recPage-1)*recPS;
+  const page = recData.slice(start, start+recPS);
+
+  const sBadge = s => {
+    const c = {Closed:'bclosed',New:'bnew',Open:'bopen',Pending:'bpending',Resolved:'bresolved','Awaiting Info':'bawaiting','Awaiting Action':'bawaction',Cancelled:'bcancelled'}[s]||'bnew';
+    return `<span class="badge ${c}">${s||''}</span>`;
+  };
+  const pBadge = p => {
+    const c = {'1 - Critical':'bcritical','2 - High':'bhigh','3 - Moderate':'bmoderate','4 - Low':'blow'}[p]||'blow';
+    return `<span class="badge ${c}">${p||''}</span>`;
+  };
+
+  document.getElementById('recBody').innerHTML = page.map(r =>
+    `<tr><td title="${r.n}">${r.n}</td><td>${r.ch||''}</td><td>${r.m||''}</td><td title="${(r.fn||'')+' '+(r.sn||'')}">${(r.fn||'').trim()+' '+(r.sn||'').trim()}</td><td title="${r.ct||''}">${r.ct||''}</td><td>${sBadge(r.st)}</td><td>${pBadge(r.pr)}</td><td>${r.op||''}</td><td title="${r.ob||''}">${r.ob||''}</td><td title="${r.cp||''}">${r.cp||''}</td><td title="${r.sv||''}">${r.sv||''}</td></tr>`
+  ).join('');
+  document.getElementById('recInfo').textContent = `Showing ${start+1}–${Math.min(start+recPS,total)} of ${total.toLocaleString()} records`;
+  makePg('recPg', total, recPage, recPS, p=>{recPage=p;sortAndRenderRec();});
+}
+
+function makePg(id, total, cur, ps, cb) {
+  const tp = Math.ceil(total/ps);
+  const el = document.getElementById(id);
+  if (tp <= 1) { el.innerHTML=''; return; }
+  let h = `<button class="pb" onclick="(${cb.toString()})(1)" ${cur===1?'disabled':''}>«</button>`;
+  h += `<button class="pb" onclick="(${cb.toString()})(${cur-1})" ${cur===1?'disabled':''}>‹</button>`;
+  let pages = [];
+  if (tp<=7) { for(let i=1;i<=tp;i++) pages.push(i); }
+  else {
+    pages=[1];
+    if(cur>3) pages.push('…');
+    for(let i=Math.max(2,cur-1);i<=Math.min(tp-1,cur+1);i++) pages.push(i);
+    if(cur<tp-2) pages.push('…');
+    pages.push(tp);
+  }
+  pages.forEach(p => {
+    if(p==='…') h+=`<span class="pb" style="cursor:default">…</span>`;
+    else h+=`<button class="pb ${p===cur?'active':''}" onclick="(${cb.toString()})(${p})">${p}</button>`;
+  });
+  h+=`<button class="pb" onclick="(${cb.toString()})(${cur+1})" ${cur===tp?'disabled':''}>›</button>`;
+  h+=`<button class="pb" onclick="(${cb.toString()})(${tp})" ${cur===tp?'disabled':''}>»</button>`;
+  el.innerHTML=h;
+}
+
+// Excel upload
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      const wb = XLSX.read(ev.target.result, {type:'array', cellDates:true});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      let rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+      if (!rows.length) return alert('No data found.');
+      const keys = Object.keys(rows[0]);
+
+      // Strip empty ColumnNNN padding columns (from ServiceNow exports with thousands of blank cols)
+      const cleanRows = rows.map(r => {
+        const out = {};
+        Object.keys(r).forEach(k => { if (!/^Column\d+$/i.test(k)) out[k] = r[k]; });
+        return out;
+      });
+      const realRows = cleanRows.filter(r => Object.values(r).some(v => v !== null && v !== undefined && String(v).trim() !== ''));
+      if (realRows.length > 0) rows = realRows;
+
+      // Universal column finder — matches partial, case-insensitive
+      function col(...names) {
+        return keys.find(k => names.some(n =>
+          k.toLowerCase().replace(/[\s_\/\-]+/g,'').includes(n.toLowerCase().replace(/[\s_\/\-]+/g,''))
+        )) || '';
+      }
+
+      // Detect columns for ALL file formats (standard, underscore, lowercase ServiceNow)
+      const nC  = col('number','ref','case');
+      const chC = col('channel','contacttype','contact type');
+      const mC  = col('mobile','cellphone','mobilenumber');
+      const fnC = col('customername','firstname','contactname','customername','customer name');
+      const snC = col('customersurname','lastname','surname');
+      const ctC = col('calltype','call type','ucalltype','u_call_type');
+      const sdC = col('shortdescription','short description','subject','short_description');
+      const stC = col('state','status');
+      const prC = col('priority');
+      // For Opened date: prefer "opened_at" / "opened" over "updated"
+      const opC = col('openedat','opened_at','opened','created') || col('updated','date','logged');
+      const obC = col('openedby','opened_by','opened by') || col('assignedto','assigned to','agent');
+      const cpC = col('callpurpose','call purpose','ucallpurpose','u_call_purpose','actionstatus','action status');
+      const svC = col('service','account','businessservice','business_service');
+      const caC = col('category');
+      const agC = col('assignedto','assigned_to','assigned to','agent');
+
+      // Convert any value to ISO date string "YYYY-MM-DDTHH:MM:SS"
+      function toISO(v) {
+        if (!v && v !== 0) return '';
+        if (v instanceof Date) return isNaN(v) ? '' : v.toISOString().substring(0,19);
+        if (typeof v === 'number') {
+          // Excel serial number (days since 1899-12-30)
+          const d = new Date(Date.UTC(1899,11,30) + Math.round(v) * 86400000);
+          return isNaN(d) ? '' : d.toISOString().substring(0,19);
+        }
+        // String — replace space with T for ISO compliance
+        return String(v).trim().replace(' ','T').substring(0,19);
+      }
+
+      ALL_DATA = rows.map(r => ({
+        n:  String(r[nC]  ||'').replace(/'/g,'').trim(),
+        ch: String(r[chC] ||'').trim(),
+        m:  String(r[mC]  ||'').replace(/'/g,'').trim(),
+        fn: String(r[fnC] ||'').trim(),
+        sn: String(r[snC] ||'').trim(),
+        ct: String(r[ctC] || r[sdC] ||'').trim(),
+        sd: String(r[sdC] ||'').trim(),
+        st: String(r[stC] ||'').trim(),
+        pr: String(r[prC] ||'4 - Low').trim(),
+        op: toISO(r[opC]),
+        ob: String(r[obC] ||'').trim(),
+        cp: String(r[cpC] ||'').trim(),
+        sv: String(r[svC] ||'').trim(),
+        ca: String(r[caC] ||'').trim(),
+        ag: String(r[agC] ||'').trim(),
+      })).filter(r => r.n || r.ob);
+
+      // ── STEP 1: Reset everything to 0 immediately ──────────────────
+      const kpiIds = ['kTotal','kClosed','kNew','kPend','kCrit','kAgents','kResolved','kAwaiting'];
+      kpiIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = '0'; }
+      });
+      document.getElementById('kClosedP').textContent = '0% of total';
+      document.getElementById('tbadge').textContent = 'Total: 0';
+      // Clear summary panels
+      ['sSt','sPr','sCh','sSv','sCa','sCp','sCt2'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '<div style="color:#94a3b8;font-size:11px;padding:10px;text-align:center">Loading...</div>';
+      });
+      // Clear agent table
+      const agtB = document.getElementById('agtBody');
+      if (agtB) agtB.innerHTML = '';
+      // Clear records table
+      const recB = document.getElementById('recBody');
+      if (recB) recB.innerHTML = '';
+      // Clear aging bands
+      ['agOld','agMid','agRec'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '0';
+      });
+      ['agOldBar','agMidBar','agRecBar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.width = '0%';
+      });
+      ['agOldPct','agMidPct','agRecPct'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '0% of open/pending';
+      });
+      ['agOldTypes','agMidTypes','agRecTypes'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '';
+      });
+      // Clear channel tiles
+      ['chPhone','chEmail','chMobile','chBlank'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '0';
+      });
+      ['chPhoneP','chEmailP','chMobileP','chBlankP'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '0%';
+      });
+      const chTb = document.getElementById('chTableBody');
+      if (chTb) chTb.innerHTML = '';
+      const chTf = document.getElementById('chTableFoot');
+      if (chTf) chTf.innerHTML = '';
+
+      // ── STEP 2: Small pause so 0s are visible, then load & animate ──
+      await new Promise(r => setTimeout(r, 300));
+
+      // Update header subtitle
+      document.querySelector('.htitle p').textContent =
+        ALL_DATA.length.toLocaleString() + ' records loaded — ' + file.name + ' | Live auto-refresh';
+
+      // Reset all filters silently
+      document.getElementById('agentSearch').value = '';
+      document.getElementById('custSearch').value = '';
+      document.getElementById('refSearch').value = '';
+      document.getElementById('mobSearch').value = '';
+      document.getElementById('fDf').value = '';
+      document.getElementById('fDt').value = '';
+
+      // Rebuild dropdowns with new data
+      fillSelect('fCh','ch'); fillSelect('fCt','ct'); fillSelect('fSt','st'); fillSelect('fPr','pr');
+
+      // Auto-refresh everything
+      agingBuckets = {old:[], mid:[], rec:[]};
+      currentAgingBucket = null;
+      document.getElementById('agingDetail').style.display = 'none';
+      recPage = 1; agtPage = 1;
+      applyFilters(); // triggers render() -> renderAging() automatically
+
+      // Save to localStorage so data survives closing/reopening the browser
+      const saved = await saveToStorage(ALL_DATA, file.name);
+
+      // Show brief toast instead of blocking alert
+      if (saved) {
+        showToast('✅ ' + ALL_DATA.length.toLocaleString() + ' records loaded & saved — ' + file.name);
+      } else {
+        showToast('⚠️ ' + ALL_DATA.length.toLocaleString() + ' records loaded (too large to save for next visit) — ' + file.name);
+      }
+    } catch(err) { alert('Error: ' + err.message); }
+  };
+  reader.readAsArrayBuffer(file);
+  e.target.value='';
+});
+
+function renderChannelBreakdown() {
+  const total = filtered.length;
+
+  // Categorise every record into a channel bucket
+  function chKey(r) {
+    const ch = (r.ch||'').trim();
+    if (!ch || ch === '' || ch.toLowerCase() === 'nan') return '__blank__';
+    return ch; // preserve exact casing for display
+  }
+
+  // Build map: { channelName -> { total, Closed, New, Open, Pending, 'Awaiting Info', Resolved, Cancelled } }
+  const map = {};
+  filtered.forEach(r => {
+    const k = chKey(r);
+    if (!map[k]) map[k] = {total:0, Closed:0, New:0, Open:0, Pending:0, 'Awaiting Info':0, Resolved:0, Cancelled:0};
+    map[k].total++;
+    const s = r.st || '';
+    if (map[k][s] !== undefined) map[k][s]++;
+    else {
+      // Handle "Awaiting Info" variants
+      if (s.toLowerCase().includes('await')) map[k]['Awaiting Info']++;
+    }
+  });
+
+  const channels = Object.entries(map).sort((a,b) => b[1].total - a[1].total);
+  const maxTotal = channels[0] ? channels[0][1].total : 1;
+
+  const td = (v, style='') => `<td style="padding:7px 10px;text-align:center;color:var(--g7);font-weight:600;${style}">${v||0}</td>`;
+  const stateColor = {Closed:'#16a34a',New:'#1d4ed8',Open:'#d97706',Pending:'#a16207','Awaiting Info':'#0369a1',Resolved:'#0891b2',Cancelled:'#dc2626'};
+
+  let rows = channels.map(([k, s]) => {
+    const pct = (s.total/total*100).toFixed(1);
+    const bw  = (s.total/maxTotal*100).toFixed(0);
+    const isBlank = k === '__blank__';
+    const label = isBlank ? '❓ Blank / Unknown' : k;
+    const filterVal = isBlank ? '__blank__' : k;
+    return `<tr style="border-bottom:1px solid var(--g2);cursor:pointer;transition:background 0.1s"
+      onmouseenter="this.style.background='var(--bu)'" onmouseleave="this.style.background=''"
+      onclick="filterByChannel('${filterVal.replace(/'/g,"\\'")}')">
+      <td style="padding:7px 14px;font-weight:600;color:var(--g9);white-space:nowrap">${label}</td>
+      <td style="padding:7px 10px;text-align:center;font-weight:800;color:var(--bd)">${s.total.toLocaleString()}</td>
+      ${td(s.Closed, 'color:#16a34a')}
+      ${td(s.New, 'color:#1d4ed8')}
+      ${td(s.Open, 'color:#d97706')}
+      ${td(s.Pending, 'color:#a16207')}
+      ${td(s['Awaiting Info'], 'color:#0369a1')}
+      ${td(s.Resolved, 'color:#0891b2')}
+      ${td(s.Cancelled, 'color:#dc2626')}
+      <td style="padding:7px 10px;text-align:center;color:var(--g5);font-size:10px">${pct}%</td>
+      <td style="padding:7px 14px;min-width:80px">
+        <div style="height:6px;background:var(--g2);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${bw}%;background:linear-gradient(90deg,var(--bd),var(--bl));border-radius:3px"></div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Totals footer
+  const tot = (key) => channels.reduce((s,[,v]) => s + (v[key]||0), 0);
+  const foot = `<tr style="background:linear-gradient(90deg,var(--bd),var(--bm));color:white">
+    <td style="padding:8px 14px;font-weight:700;font-size:11px">TOTAL</td>
+    <td style="padding:8px 10px;text-align:center;font-weight:800;font-size:13px">${filtered.length.toLocaleString()}</td>
+    <td style="padding:8px 10px;text-align:center;font-weight:700">${tot('Closed').toLocaleString()}</td>
+    <td style="padding:8px 10px;text-align:center;font-weight:700">${tot('New').toLocaleString()}</td>
+    <td style="padding:8px 10px;text-align:center;font-weight:700">${tot('Open').toLocaleString()}</td>
+    <td style="padding:8px 10px;text-align:center;font-weight:700">${tot('Pending').toLocaleString()}</td>
+    <td style="padding:8px 10px;text-align:center;font-weight:700">${tot('Awaiting Info').toLocaleString()}</td>
+    <td style="padding:8px 10px;text-align:center;font-weight:700">${tot('Resolved').toLocaleString()}</td>
+    <td style="padding:8px 10px;text-align:center;font-weight:700">${tot('Cancelled').toLocaleString()}</td>
+    <td style="padding:8px 10px;text-align:center;font-weight:700">100%</td>
+    <td></td>
+  </tr>`;
+
+  document.getElementById('chTableBody').innerHTML = rows;
+  document.getElementById('chTableFoot').innerHTML = foot;
+
+  // Update mini tiles
+  const cntCh = (match) => {
+    if (match === '__blank__') return map['__blank__'] ? map['__blank__'].total : 0;
+    // case-insensitive match
+    const key = Object.keys(map).find(k => k.toLowerCase() === match.toLowerCase());
+    return key ? map[key].total : 0;
+  };
+  const mobileTotal = Object.entries(map)
+    .filter(([k]) => k.toLowerCase().includes('mobile'))
+    .reduce((s,[,v]) => s+v.total, 0);
+  const blankTotal  = map['__blank__'] ? map['__blank__'].total : 0;
+  const phone = cntCh('phone');
+  const email = cntCh('email');
+  const pct = n => total > 0 ? (n/total*100).toFixed(1)+'%' : '0.0%';
+
+  document.getElementById('chPhone').textContent   = phone.toLocaleString();
+  document.getElementById('chEmail').textContent   = email.toLocaleString();
+  document.getElementById('chMobile').textContent  = mobileTotal.toLocaleString();
+  document.getElementById('chBlank').textContent   = blankTotal.toLocaleString();
+  document.getElementById('chPhoneP').textContent  = pct(phone);
+  document.getElementById('chEmailP').textContent  = pct(email);
+  document.getElementById('chMobileP').textContent = pct(mobileTotal);
+  document.getElementById('chBlankP').textContent  = pct(blankTotal);
+}
+
+function filterByChannel(val) {
+  document.getElementById('fCh').value = val;
+  applyFilters();
+}
+
+function filterByState(state) {
+  document.getElementById('fSt').value = state;
+  applyFilters();
+}
+
+function filterByPriority(priority) {
+  document.getElementById('fPr').value = priority;
+  applyFilters();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// Reset all KPIs to 0 immediately when page loads — numbers animate up once data is ready
+(function resetKPIsOnLoad() {
+  const ids = ['kTotal','kClosed','kNew','kPend','kCrit','kAgents','kResolved','kAwaiting'];
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '0'; });
+  const cp = document.getElementById('kClosedP');
+  if (cp) cp.textContent = '0% of total';
+})();
+
+init();
+
+// Support direct deep-linking, e.g. dashboard.html#ccpSection
+if (location.hash) {
+  setTimeout(() => {
+    const target = document.querySelector(location.hash);
+    if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 300);
+}
+
+
+// ---- AGENT CHARTS ----
+
+function switchChartTab(type, el) {
+  currentChartType = type;
+  document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderAgentCharts();
+}
+
+function renderAgentCharts() {
+  const topN = parseInt(document.getElementById('chartTopN').value);
+  const sortBy = document.getElementById('chartSortBy').value;
+
+  // Build sorted agent data
+  let data = [...agtData].sort((a,b) => b[sortBy] - a[sortBy]);
+  if (topN < 999) data = data.slice(0, topN);
+
+  const labels = data.map(a => {
+    const parts = a.name.trim().split(' ');
+    const first = parts[0] ? parts[0].substring(0,8) : '';
+    const last = parts[1] ? ' ' + parts[1].substring(0,1) + '.' : '';
+    return first + last;
+  });
+  const totals  = data.map(a => a.total);
+  const closed  = data.map(a => a.closed);
+  const openV   = data.map(a => a.open + a.pending);
+  const newV    = data.map(a => a.new);
+  const resolved= data.map(a => a.resolved);
+
+  const ctx = document.getElementById('agentBarChart').getContext('2d');
+  if (agentChartInstance) { agentChartInstance.destroy(); agentChartInstance = null; }
+
+  // Colour palettes
+  const blueGrad = (ctx2, area) => {
+    if (!area) return 'rgba(0,87,184,0.85)';
+    const g = ctx2.createLinearGradient(0, area.bottom, 0, area.top);
+    g.addColorStop(0, 'rgba(0,48,135,0.9)');
+    g.addColorStop(0.5, 'rgba(0,87,184,0.85)');
+    g.addColorStop(1, 'rgba(26,127,224,0.8)');
+    return g;
+  };
+
+  const makeGradPlugin = (colors) => ({
+    id:'gradFill',
+    beforeDatasetsDraw(chart) {
+      chart.data.datasets.forEach((ds,i) => {
+        const meta = chart.getDatasetMeta(i);
+        if (!meta.data.length) return;
+        const area = chart.chartArea;
+        const g = chart.ctx.createLinearGradient(0, area.bottom, 0, area.top);
+        const c = colors[i % colors.length];
+        g.addColorStop(0, c[0]);
+        g.addColorStop(1, c[1]);
+        ds.backgroundColor = g;
+      });
+    }
+  });
+
+  const shadow3DPlugin = {
+    id:'shadow3d',
+    beforeDatasetsDraw(chart) {
+      const {ctx: c, chartArea:{left,top,right,bottom}} = chart;
+      // Draw 3D shadow bars
+      chart.data.datasets.forEach((ds,di) => {
+        const meta = chart.getDatasetMeta(di);
+        if (meta.type !== 'bar') return;
+        meta.data.forEach(bar => {
+          const {x, y, width, base} = bar.getProps(['x','y','width','base'], true);
+          const depth = 8, dh = 6;
+          // Right face (3D depth)
+          c.save();
+          c.fillStyle = 'rgba(0,30,100,0.25)';
+          c.beginPath();
+          c.moveTo(x + width/2, y);
+          c.lineTo(x + width/2 + depth, y - dh);
+          c.lineTo(x + width/2 + depth, base - dh);
+          c.lineTo(x + width/2, base);
+          c.closePath();
+          c.fill();
+          // Top face
+          c.fillStyle = 'rgba(255,255,255,0.22)';
+          c.beginPath();
+          c.moveTo(x - width/2, y);
+          c.lineTo(x - width/2 + depth, y - dh);
+          c.lineTo(x + width/2 + depth, y - dh);
+          c.lineTo(x + width/2, y);
+          c.closePath();
+          c.fill();
+          c.restore();
+        });
+      });
+    }
+  };
+
+  const lineGlow = {
+    id:'lineGlow',
+    afterDatasetsDraw(chart) {
+      chart.data.datasets.forEach((ds,i) => {
+        const meta = chart.getDatasetMeta(i);
+        if (meta.type !== 'line') return;
+        const {ctx:c} = chart;
+        meta.data.forEach(pt => {
+          const {x,y} = pt.getProps(['x','y'],true);
+          c.save();
+          c.shadowColor = ds.borderColor;
+          c.shadowBlur = 14;
+          c.beginPath();
+          c.arc(x, y, 5, 0, Math.PI*2);
+          c.fillStyle = ds.borderColor;
+          c.fill();
+          c.restore();
+        });
+      });
+    }
+  };
+
+  const commonOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 700, easing: 'easeOutQuart' },
+    plugins: {
+      legend: { position:'top', labels:{ font:{size:10,weight:'600'}, boxWidth:12, padding:14, color:'#334155' } },
+      tooltip: {
+        backgroundColor: 'rgba(0,30,100,0.92)',
+        titleFont:{size:11,weight:'700'},
+        bodyFont:{size:11},
+        padding:10,
+        cornerRadius:8,
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()}`
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks:{ font:{size:9}, color:'#475569', maxRotation:90, minRotation:90 },
+        grid:{ display:false },
+        border:{ color:'#e2e8f0' }
+      },
+      y: {
+        ticks:{ font:{size:9}, color:'#475569', callback: v => v.toLocaleString() },
+        grid:{ color:'rgba(0,87,184,0.07)', drawBorder:false },
+        border:{ dash:[4,4], color:'transparent' }
+      }
+    }
+  };
+
+  if (currentChartType === 'bar3d') {
+    agentChartInstance = new Chart(ctx, {
+      type: 'bar',
+      plugins: [shadow3DPlugin],
+      data: {
+        labels,
+        datasets: [{
+          label: 'Total',
+          data: totals,
+          backgroundColor: 'rgba(0,87,184,0.82)',
+          borderColor: 'rgba(0,48,135,1)',
+          borderWidth: 1,
+          borderRadius: 4,
+          hoverBackgroundColor: 'rgba(26,127,224,0.9)'
+        }]
+      },
+      options: { ...commonOpts,
+        plugins: { ...commonOpts.plugins,
+          title:{ display:true, text:'Agent Total Case Count (3D Bar)', font:{size:13,weight:'700'}, color:'#003087', padding:{bottom:10} }
+        }
+      }
+    });
+
+  } else if (currentChartType === 'line3d') {
+    // Multiple lines with 3D glow effect
+    const mkLine = (label, vals, color, fill) => ({
+      label, data: vals,
+      borderColor: color,
+      backgroundColor: color.replace('1)', '0.12)'),
+      borderWidth: 2.5,
+      pointRadius: 5,
+      pointHoverRadius: 8,
+      pointBackgroundColor: color,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      tension: 0.4,
+      fill
+    });
+    agentChartInstance = new Chart(ctx, {
+      type: 'line',
+      plugins: [lineGlow],
+      data: {
+        labels,
+        datasets: [
+          mkLine('Total',   totals,   'rgba(0,87,184,1)',   false),
+          mkLine('Closed',  closed,   'rgba(22,163,74,1)',  false),
+          mkLine('Open/Pending', openV, 'rgba(217,119,6,1)', false),
+          mkLine('New',     newV,     'rgba(14,165,233,1)', false),
+          mkLine('Resolved',resolved, 'rgba(139,92,246,1)', false),
+        ]
+      },
+      options: { ...commonOpts,
+        plugins: { ...commonOpts.plugins,
+          title:{ display:true, text:'Agent Trends — Line Chart (3D Glow)', font:{size:13,weight:'700'}, color:'#003087', padding:{bottom:10} }
+        }
+      }
+    });
+
+  } else if (currentChartType === 'grouped') {
+    agentChartInstance = new Chart(ctx, {
+      type: 'bar',
+      plugins: [shadow3DPlugin],
+      data: {
+        labels,
+        datasets: [
+          { label:'Total',   data:totals,   backgroundColor:'rgba(0,87,184,0.85)',  borderRadius:3, borderWidth:0 },
+          { label:'Closed',  data:closed,   backgroundColor:'rgba(22,163,74,0.85)', borderRadius:3, borderWidth:0 },
+          { label:'Open/Pending', data:openV, backgroundColor:'rgba(217,119,6,0.85)', borderRadius:3, borderWidth:0 },
+          { label:'New',     data:newV,     backgroundColor:'rgba(14,165,233,0.85)',borderRadius:3, borderWidth:0 },
+          { label:'Resolved',data:resolved, backgroundColor:'rgba(139,92,246,0.85)',borderRadius:3, borderWidth:0 },
+        ]
+      },
+      options: { ...commonOpts,
+        plugins: { ...commonOpts.plugins,
+          title:{ display:true, text:'Agent Grouped Breakdown (3D Bar)', font:{size:13,weight:'700'}, color:'#003087', padding:{bottom:10} }
+        }
+      }
+    });
+
+  } else if (currentChartType === 'stacked') {
+    agentChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label:'Closed',  data:closed,   backgroundColor:'rgba(22,163,74,0.88)',  borderRadius:0, borderWidth:0 },
+          { label:'Resolved',data:resolved, backgroundColor:'rgba(14,165,233,0.88)', borderWidth:0 },
+          { label:'New',     data:newV,     backgroundColor:'rgba(0,87,184,0.88)',   borderWidth:0 },
+          { label:'Open/Pending', data:openV, backgroundColor:'rgba(217,119,6,0.88)', borderWidth:0 },
+        ]
+      },
+      options: { ...commonOpts,
+        plugins: { ...commonOpts.plugins,
+          title:{ display:true, text:'Agent Stacked State Breakdown', font:{size:13,weight:'700'}, color:'#003087', padding:{bottom:10} }
+        },
+        scales: { ...commonOpts.scales,
+          x:{ ...commonOpts.scales.x, stacked:true },
+          y:{ ...commonOpts.scales.y, stacked:true }
+        }
+      }
+    });
+  }
+}
+
+// ---- CASE AGING ----
+
+// ---- CONTACT CENTRE AGENTS PERFORMANCE ----
+
+function ccpDateParts(iso) {
+  // iso like "2026-07-20T14:32:05"
+  if (!iso) return null;
+  const d = new Date(iso.replace(' ', 'T'));
+  if (isNaN(d)) return null;
+  return d;
+}
+
+function renderCCP() {
+  const selEl = document.getElementById('ccpAgentSelect');
+  if (!selEl) return; // section not present
+  const selectedAgent = selEl.value || '__ALL__';
+  const statusEl = document.getElementById('ccpStatusSelect');
+  const selectedStatus = statusEl ? statusEl.value : '__ALL__';
+
+  const fromEl = document.getElementById('ccpDateFrom');
+  const toEl = document.getElementById('ccpDateTo');
+  const fromVal = fromEl ? fromEl.value : '';
+  const toVal = toEl ? toEl.value : '';
+  const rangeStart = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+  const rangeEnd = toVal ? new Date(toVal + 'T23:59:59.999') : null;
+
+  const rows = filtered.filter(r => {
+    if (selectedAgent !== '__ALL__' && (r.ob||'').trim() !== selectedAgent) return false;
+    if (selectedStatus !== '__ALL__' && (r.st||'').trim() !== selectedStatus) return false;
+    if (rangeStart || rangeEnd) {
+      const d = ccpDateParts(r.op);
+      if (!d) return false;
+      if (rangeStart && d < rangeStart) return false;
+      if (rangeEnd && d > rangeEnd) return false;
+    }
+    return true;
+  });
+
+  const setTxt0 = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setTxt0('ccpRangeCount', rows.length.toLocaleString());
+  setTxt0('ccpRangeSub', (rangeStart || rangeEnd)
+    ? (fromVal || '…') + ' → ' + (toVal || '…')
+    : 'All time');
+
+  const now = new Date();
+  const todayStr = now.toISOString().substring(0,10);
+  const curMonthStr = now.toISOString().substring(0,7);
+  const curMinuteStr = now.toISOString().substring(0,16); // YYYY-MM-DDTHH:MM
+
+  // 1 & partial 3: tickets this minute / today / this month
+  let minuteCount = 0, dayCount = 0, monthCount = 0, openCount = 0;
+  let minOp = null, maxOp = null;
+
+  rows.forEach(r => {
+    const d = ccpDateParts(r.op);
+    if (d) {
+      const dISO = d.toISOString();
+      if (dISO.substring(0,16) === curMinuteStr) minuteCount++;
+      if (dISO.substring(0,10) === todayStr) dayCount++;
+      if (dISO.substring(0,7) === curMonthStr) monthCount++;
+      if (!minOp || d < minOp) minOp = d;
+      if (!maxOp || d > maxOp) maxOp = d;
+    }
+    const s = (r.st||'').toLowerCase();
+    if (s === 'new' || s === 'open') openCount++;
+  });
+
+  // 4: average tickets per hour / minute, based on the span of the filtered data
+  let avgHour = 0, avgMinute = 0;
+  if (minOp && maxOp && rows.length) {
+    const spanMs = Math.max(maxOp - minOp, 60000); // at least 1 minute to avoid divide-by-huge-number
+    const spanHours = spanMs / 3600000;
+    const spanMinutes = spanMs / 60000;
+    avgHour = rows.length / spanHours;
+    avgMinute = rows.length / spanMinutes;
+  }
+
+  const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setTxt('ccpMinuteCount', minuteCount.toLocaleString());
+  setTxt('ccpDayCount', dayCount.toLocaleString());
+  setTxt('ccpMonthCount', monthCount.toLocaleString());
+  setTxt('ccpAvgHour', avgHour >= 10 ? avgHour.toFixed(1) : avgHour.toFixed(2));
+  setTxt('ccpAvgMinute', avgMinute.toFixed(3));
+  setTxt('ccpOpenCount', openCount.toLocaleString());
+
+  renderCCPOverviewChart(rows);
+  renderCCPTop5();
+}
+
+function clearCCPDateRange() {
+  const fromEl = document.getElementById('ccpDateFrom');
+  const toEl = document.getElementById('ccpDateTo');
+  if (fromEl) fromEl.value = '';
+  if (toEl) toEl.value = '';
+  renderCCP();
+}
+
+function renderCCPOverviewChart(rows) {
+  const canvas = document.getElementById('ccpOverviewChart');
+  if (!canvas) return;
+  const modeEl = document.getElementById('ccpOverviewMode');
+  const mode = modeEl ? modeEl.value : 'daily';
+  const titleEl = document.getElementById('ccpChartTitle');
+
+  let labels = [], data = [];
+
+  if (mode === 'daily') {
+    if (titleEl) titleEl.textContent = '📈 Daily Ticket Volume — Last 30 Days';
+    const now = new Date();
+    const buckets = {};
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now); d.setDate(d.getDate() - i);
+      const key = d.toISOString().substring(0,10);
+      buckets[key] = 0;
+    }
+    rows.forEach(r => {
+      const d = ccpDateParts(r.op);
+      if (!d) return;
+      const key = d.toISOString().substring(0,10);
+      if (key in buckets) buckets[key]++;
+    });
+    labels = Object.keys(buckets).map(k => k.substring(5)); // MM-DD
+    data = Object.values(buckets);
+  } else {
+    if (titleEl) titleEl.textContent = '🗓️ Monthly Ticket Volume';
+    const buckets = {};
+    rows.forEach(r => {
+      const d = ccpDateParts(r.op);
+      if (!d) return;
+      const key = d.toISOString().substring(0,7); // YYYY-MM
+      buckets[key] = (buckets[key]||0) + 1;
+    });
+    const sortedKeys = Object.keys(buckets).sort();
+    labels = sortedKeys;
+    data = sortedKeys.map(k => buckets[k]);
+  }
+
+  if (ccpChartInstance) { ccpChartInstance.destroy(); ccpChartInstance = null; }
+  const ctx = canvas.getContext('2d');
+  ccpChartInstance = new Chart(ctx, {
+    type: mode === 'daily' ? 'line' : 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Tickets Logged',
+        data,
+        borderColor: '#1e3a8a',
+        backgroundColor: mode === 'daily' ? 'rgba(30,58,138,0.12)' : 'rgba(30,58,138,0.75)',
+        fill: mode === 'daily',
+        tension: 0.3,
+        pointRadius: mode === 'daily' ? 2 : 0,
+        borderRadius: mode === 'daily' ? 0 : 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+function renderCCPTop5() {
+  const dayBody = document.getElementById('ccpTop5BodyDay');
+  const weekBody = document.getElementById('ccpTop5BodyWeek');
+  const monthBody = document.getElementById('ccpTop5BodyMonth');
+  if (!dayBody || !weekBody || !monthBody) return;
+
+  const statusEl = document.getElementById('ccpStatusSelect');
+  const selectedStatus = statusEl ? statusEl.value : '__ALL__';
+  const statusLblEl = document.getElementById('ccpTop5StatusLbl');
+  if (statusLblEl) statusLblEl.textContent = selectedStatus !== '__ALL__' ? ' — ' + selectedStatus : '';
+
+  const now = new Date();
+  const dayCutoff = new Date(now); dayCutoff.setHours(0,0,0,0);
+  const weekCutoff = new Date(now); weekCutoff.setDate(weekCutoff.getDate() - 7);
+  const monthCutoff = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  function computeTop5(cutoff) {
+    const counts = {};
+    filtered.forEach(r => {
+      if (selectedStatus !== '__ALL__' && (r.st||'').trim() !== selectedStatus) return;
+      const d = ccpDateParts(r.op);
+      if (!d || d < cutoff) return;
+      const agent = (r.ob||'').trim() || '(blank)';
+      counts[agent] = (counts[agent]||0) + 1;
+    });
+    return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  }
+
+  function renderInto(bodyEl, top5) {
+    const maxCount = top5.length ? top5[0][1] : 1;
+    bodyEl.innerHTML = top5.length
+      ? top5.map(([agent, count], i) => {
+          const rankCls = i===0?'r1':i===1?'r2':i===2?'r3':'';
+          const pct = (count/maxCount*100).toFixed(0);
+          return `<tr>
+            <td><span class="ccp-rank ${rankCls}">${i+1}</span></td>
+            <td title="${agent}">${agent}</td>
+            <td><strong>${count.toLocaleString()}</strong></td>
+            <td><div class="ccp-bar-bg"><div class="ccp-bar-fill" style="width:${pct}%"></div></div></td>
+          </tr>`;
+        }).join('')
+      : '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:14px;font-size:11px">No tickets in this period</td></tr>';
+  }
+
+  renderInto(dayBody, computeTop5(dayCutoff));
+  renderInto(weekBody, computeTop5(weekCutoff));
+  renderInto(monthBody, computeTop5(monthCutoff));
+}
+
+function parseOpened(val) {
+  if (!val && val !== 0) return null;
+  if (val instanceof Date) return isNaN(val) ? null : val;
+  if (typeof val === 'number') {
+    const d = new Date(Date.UTC(1899,11,30) + Math.round(val)*86400000);
+    return isNaN(d) ? null : d;
+  }
+  // Normalise: replace space with T so new Date() works in ALL browsers
+  const s = String(val).trim().replace(' ','T');
+  if (!s) return null;
+  const d = new Date(s);
+  if (!isNaN(d)) return d;
+  // Last resort: try raw string
+  const d2 = new Date(String(val).trim());
+  return isNaN(d2) ? null : d2;
+}
+
+function renderAging() {
+  const now = new Date();
+  const MS60 = 60 * 24 * 60 * 60 * 1000;
+  const MS30 = 30 * 24 * 60 * 60 * 1000;
+
+  agingBuckets = {old:[], mid:[], rec:[]};
+
+  filtered.forEach(r => {
+    const s = (r.st||'').toLowerCase();
+    const isAwaitingAction = s === 'awaiting action';
+    const isNewCase = s === 'new';
+    const alwaysRecent = isAwaitingAction || isNewCase;
+    if (s !== 'open' && s !== 'pending' && !alwaysRecent) return;
+    const opened = parseOpened(r.op);
+    if (!opened) return;
+    const age = now - opened;
+    if (isNaN(age) || age < 0) return;
+    const days = Math.floor(age / 86400000);
+    const rec = {...r, _days: days};
+    // Awaiting Action and New cases always count in the "< 1 Month" (green)
+    // bucket, regardless of how old they actually are.
+    if (alwaysRecent)          agingBuckets.rec.push(rec);
+    else if (age > MS60)       agingBuckets.old.push(rec);
+    else if (age > MS30)       agingBuckets.mid.push(rec);
+    else                       agingBuckets.rec.push(rec);
+  });
+
+  const total = agingBuckets.old.length + agingBuckets.mid.length + agingBuckets.rec.length || 1;
+
+  function updateBand(bucket, valId, barId, pctId, typesId) {
+    const rows = agingBuckets[bucket];
+    const cnt  = rows.length;
+    const pct  = (cnt / total * 100).toFixed(1);
+    document.getElementById(valId).textContent  = cnt.toLocaleString();
+    document.getElementById(barId).style.width  = pct + '%';
+    document.getElementById(pctId).textContent  = pct + '% of open/pending';
+
+    // Call-type breakdown
+    const typeCnt = {};
+    rows.forEach(r => { const t = r.ct || r.sd || '(Unknown)'; typeCnt[t]=(typeCnt[t]||0)+1; });
+    const entries = Object.entries(typeCnt).sort((a,b)=>b[1]-a[1]);
+    const top     = entries.slice(0,8);
+    const maxT    = top[0] ? top[0][1] : 1;
+    const extra   = entries.length - 8;
+    document.getElementById(typesId).innerHTML =
+      top.map(([t,n]) => {
+        const bw = (n/maxT*100).toFixed(0);
+        const label = t.length > 26 ? t.substring(0,25)+'…' : t;
+        return `<div class="ab-type-row"><span class="ab-type-name" title="${t}">${label}</span><span class="ab-type-cnt">${n}</span></div><div class="ab-type-bar" style="width:${bw}%"></div>`;
+      }).join('') + (extra>0 ? `<div style="font-size:9px;color:var(--g5);margin-top:3px">+${extra} more types</div>` : '');
+  }
+
+  updateBand('old','agOld','agOldBar','agOldPct','agOldTypes');
+  updateBand('mid','agMid','agMidBar','agMidPct','agMidTypes');
+  updateBand('rec','agRec','agRecBar','agRecPct','agRecTypes');
+
+  // Average age (days open) of New-status cases inside the recent bucket (not a raw count)
+  const newRows = agingBuckets.rec.filter(r => (r.st||'').toLowerCase() === 'new');
+  const newCountEl = document.getElementById('agRecNewCount');
+  if (newCountEl) newCountEl.textContent = newRows.length.toLocaleString();
+
+  // Auto-refresh drilldown table if open
+  if (currentAgingBucket && document.getElementById('agingDetail').style.display !== 'none') {
+    populateAgingDetail(currentAgingBucket, atmActiveFilter ? atmActiveFilter.type : null);
+  }
+
+  renderAgingTypeMatrix();
+}
+
+function toggleAgingDetail(bucket, typeFilter) {
+  const detail = document.getElementById('agingDetail');
+  if (!typeFilter && currentAgingBucket === bucket && detail.style.display !== 'none' && !atmActiveFilter) {
+    detail.style.display = 'none'; currentAgingBucket = null; return;
+  }
+  currentAgingBucket = bucket;
+  atmActiveFilter = typeFilter ? {bucket, type: typeFilter} : null;
+  populateAgingDetail(bucket, typeFilter || null);
+  detail.style.display = 'block';
+  detail.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function populateAgingDetail(bucket, typeFilter) {
+  const titleMap = {
+    old:'🔴 Overdue — Older than 2 Months',
+    mid:'🟡 Aging — 1 to 2 Months',
+    rec:'🟢 Recent — Less than 1 Month'
+  };
+  let rows = agingBuckets[bucket] || [];
+  if (typeFilter) rows = rows.filter(r => (r.ct || r.sd || '(Unknown)') === typeFilter);
+  document.getElementById('agingDetailTitle').textContent =
+    titleMap[bucket] + (typeFilter ? ' — ' + typeFilter : '') + ' — ' + rows.length.toLocaleString() + ' cases';
+
+  const sBadge = s => {
+    const cls = {Closed:'bclosed',New:'bnew',Open:'bopen',Pending:'bpending',
+      Resolved:'bresolved','Awaiting Info':'bawaiting','Awaiting Action':'bawaction',Cancelled:'bcancelled'}[s]||'bnew';
+    return `<span class="badge ${cls}">${s||''}</span>`;
+  };
+  const pBadge = p => {
+    const cls = {'1 - Critical':'bcritical','2 - High':'bhigh','3 - Moderate':'bmoderate','4 - Low':'blow'}[p]||'blow';
+    return `<span class="badge ${cls}">${p||''}</span>`;
+  };
+  const sorted = [...rows].sort((a,b)=>b._days - a._days);
+  document.getElementById('agingDetailBody').innerHTML = sorted.length
+    ? sorted.map(r => {
+        const ds = r._days>60?'color:#dc2626;font-weight:700':r._days>30?'color:#d97706;font-weight:700':'color:#16a34a;font-weight:600';
+        return `<tr>
+          <td><strong>${r.n||''}</strong></td>
+          <td>${(r.fn||'').trim()} ${(r.sn||'').trim()}</td>
+          <td>${r.m||''}</td>
+          <td title="${r.ct||r.sd||''}">${r.ct||r.sd||''}</td>
+          <td>${sBadge(r.st)}</td>
+          <td>${pBadge(r.pr)}</td>
+          <td>${(r.op||'').replace('T',' ')}</td>
+          <td style="${ds}">${r._days} days</td>
+          <td>${r.ob||r.ag||''}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:20px">No cases in this bucket</td></tr>';
+}
+
+// ---- CASES PER TYPE, BY AGE BUCKET ----
+
+function sortAgingMatrix(col) {
+  if (atmSortCol === col) atmSortDir *= -1;
+  else { atmSortCol = col; atmSortDir = (col === 'type') ? 1 : -1; }
+  renderAgingTypeMatrix();
+}
+
+function renderAgingTypeMatrix() {
+  const body = document.getElementById('atmBody');
+  const foot = document.getElementById('atmFoot');
+  if (!body) return;
+
+  const typeOf = r => r.ct || r.sd || '(Unknown)';
+  const allTypes = new Set();
+  ['old','mid','rec'].forEach(b => agingBuckets[b].forEach(r => allTypes.add(typeOf(r))));
+
+  const searchEl = document.getElementById('atmSearch');
+  const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
+
+  let matrix = [...allTypes].map(t => {
+    const old = agingBuckets.old.filter(r => typeOf(r) === t).length;
+    const mid = agingBuckets.mid.filter(r => typeOf(r) === t).length;
+    const rec = agingBuckets.rec.filter(r => typeOf(r) === t).length;
+    return { type: t, old, mid, rec, total: old + mid + rec };
+  });
+
+  if (q) matrix = matrix.filter(m => m.type.toLowerCase().includes(q));
+
+  matrix.sort((a, b) => {
+    if (atmSortCol === 'type') return atmSortDir * a.type.localeCompare(b.type);
+    return atmSortDir * (a[atmSortCol] - b[atmSortCol]);
+  });
+
+  // Sort-arrow indicators
+  ['Type','Old','Mid','Rec','Total'].forEach(k => {
+    const el = document.getElementById('atmSort' + k);
+    if (el) el.textContent = '';
+  });
+  const arrowMap = {type:'atmSortType', old:'atmSortOld', mid:'atmSortMid', rec:'atmSortRec', total:'atmSortTotal'};
+  const activeArrowEl = document.getElementById(arrowMap[atmSortCol]);
+  if (activeArrowEl) activeArrowEl.textContent = atmSortDir === 1 ? '▲' : '▼';
+
+  const cell = (bucket, n, type) => {
+    const cls = n === 0 ? 'atm-count zero' : 'atm-count';
+    const click = n === 0 ? '' : ` onclick="toggleAgingDetail('${bucket}', ${JSON.stringify(type)})"`;
+    return `<span class="${cls}"${click}>${n.toLocaleString()}</span>`;
+  };
+
+  body.innerHTML = matrix.length
+    ? matrix.map(m => `<tr>
+        <td title="${m.type}">${m.type.length > 40 ? m.type.substring(0,39)+'…' : m.type}</td>
+        <td class="atm-num atm-red">${cell('old', m.old, m.type)}</td>
+        <td class="atm-num atm-amber">${cell('mid', m.mid, m.type)}</td>
+        <td class="atm-num atm-green">${cell('rec', m.rec, m.type)}</td>
+        <td class="atm-num atm-total">${m.total.toLocaleString()}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:16px">No matching call types</td></tr>';
+
+  const totals = matrix.reduce((acc, m) => ({
+    old: acc.old + m.old, mid: acc.mid + m.mid, rec: acc.rec + m.rec, total: acc.total + m.total
+  }), {old:0, mid:0, rec:0, total:0});
+  foot.innerHTML = `<tr>
+    <td>Total (${matrix.length} type${matrix.length===1?'':'s'})</td>
+    <td class="atm-num">${totals.old.toLocaleString()}</td>
+    <td class="atm-num">${totals.mid.toLocaleString()}</td>
+    <td class="atm-num">${totals.rec.toLocaleString()}</td>
+    <td class="atm-num">${totals.total.toLocaleString()}</td>
+  </tr>`;
+}
+
+
+
+</script></body></html>
