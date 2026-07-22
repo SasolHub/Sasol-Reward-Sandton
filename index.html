@@ -183,6 +183,7 @@ tbody td{padding:7px 10px;color:var(--g7);white-space:nowrap;max-width:160px;ove
 .ccp-controls .fg{display:flex;flex-direction:column;gap:4px}
 .ccp-controls label{font-size:10px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:0.3px}
 .ccp-controls select{padding:7px 10px;border:1px solid var(--g3);border-radius:7px;font-size:12px;font-weight:600;color:var(--g7);background:white;min-width:190px}
+.ccp-controls select:disabled{background:var(--g1);color:var(--g5);cursor:not-allowed}
 .ccp-stats-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;padding:16px}
 .ccp-stat{background:var(--g1);border:1px solid var(--g2);border-radius:10px;padding:14px;text-align:center}
 .ccp-stat-warn{background:#fff7ed;border-color:#fed7aa}
@@ -196,6 +197,14 @@ tbody td{padding:7px 10px;color:var(--g7);white-space:nowrap;max-width:160px;ove
 .ccp-daterange input[type=date]{padding:6px 8px;border:1px solid var(--g3);border-radius:7px;font-size:11px;color:var(--g7);background:white}
 .ccp-daterange span{color:var(--g5);font-size:11px;font-weight:600}
 .ccp-clearbtn{background:white;color:var(--g7);border:1.5px solid var(--g3);border-radius:7px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s}
+.ccp-quickrange-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:white;border-bottom:1px solid var(--g3);flex-wrap:wrap}
+.ccp-quickrange-lbl{font-size:10px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap}
+.ccp-quickrange-row{display:flex;gap:8px;flex-wrap:wrap}
+.ccp-chip{display:flex;align-items:center;gap:6px;background:var(--g1);border:1.5px solid var(--g3);border-radius:20px;padding:5px 8px 5px 12px;font-size:11px;font-weight:600;color:var(--g7);cursor:pointer;transition:all 0.18s;font-family:'Inter',sans-serif}
+.ccp-chip:hover{border-color:var(--bm);background:var(--bp)}
+.ccp-chip.active{background:linear-gradient(90deg,var(--bd),var(--bm));border-color:transparent;color:white}
+.ccp-chip-count{background:rgba(0,48,135,0.1);border-radius:10px;padding:1px 8px;font-weight:800;font-size:10px;color:var(--bd)}
+.ccp-chip.active .ccp-chip-count{background:rgba(255,255,255,0.25);color:white}
 .ccp-clearbtn:hover{background:var(--bp);border-color:var(--bm);color:var(--bd)}
 .ccp-chart-card{padding:0 16px 16px}
 .ccp-chart-title{font-size:12px;font-weight:700;color:var(--g7);margin-bottom:10px}
@@ -662,22 +671,32 @@ th.atm-green{color:#d3ffe6}
       <div class="fg">
         <label>Overview:</label>
         <select id="ccpOverviewMode" onchange="renderCCP()">
-          <option value="daily">📅 Daily (last 30 days)</option>
-          <option value="monthly">🗓️ Monthly</option>
+          <option value="last30">📅 30 Last Day</option>
+          <option value="lasthour">⏱️ Last Hour</option>
+          <option value="month">📆 Month</option>
+          <option value="lastmonth">🗓️ Last Month</option>
+          <option value="last7">📊 Last 7 Days</option>
+          <option value="today">⏰ Today (Min &amp; Hours)</option>
         </select>
       </div>
       <div class="fg">
         <label>📆 Date Range:</label>
         <div class="ccp-daterange">
-          <input type="date" id="ccpDateFrom" onchange="renderCCP()">
+          <input type="date" id="ccpDateFrom" onchange="ccpDateInputChanged()">
           <span>to</span>
-          <input type="date" id="ccpDateTo" onchange="renderCCP()">
+          <input type="date" id="ccpDateTo" onchange="ccpDateInputChanged()">
         </div>
       </div>
       <div class="fg">
         <label>&nbsp;</label>
         <button class="ccp-clearbtn" onclick="clearCCPDateRange()">✕ Clear Range</button>
       </div>
+    </div>
+
+    <!-- Quick date-range presets, each showing its own live count -->
+    <div class="ccp-quickrange-bar">
+      <span class="ccp-quickrange-lbl">⚡ Quick Ranges:</span>
+      <div class="ccp-quickrange-row" id="ccpQuickRanges"></div>
     </div>
 
     <!-- 1, 3, 4: Ticket counts & rates for selected agent -->
@@ -690,10 +709,12 @@ th.atm-green{color:#d3ffe6}
       <div class="ccp-stat">
         <div class="ccp-stat-lbl">Tickets Logged — This Minute</div>
         <div class="ccp-stat-val" id="ccpMinuteCount">0</div>
+        <div class="ccp-stat-sub" id="ccpMinuteSub">—</div>
       </div>
       <div class="ccp-stat">
         <div class="ccp-stat-lbl">Tickets Logged — Today</div>
         <div class="ccp-stat-val" id="ccpDayCount">0</div>
+        <div class="ccp-stat-sub" id="ccpDaySub">—</div>
       </div>
       <div class="ccp-stat">
         <div class="ccp-stat-lbl">Tickets Logged — This Month</div>
@@ -724,7 +745,7 @@ th.atm-green{color:#d3ffe6}
       <div class="ccp-top5-title">🏆 Top 5 Agents Logging Tickets<span id="ccpTop5StatusLbl"></span></div>
       <div class="ccp-top5-grid">
         <div class="ccp-top5-col">
-          <div class="ccp-top5-col-title">📅 Per Day (Today)</div>
+          <div class="ccp-top5-col-title" id="ccpTop5DayTitle">📅 Per Day (Today)</div>
           <table class="ccp-top5-table">
             <thead><tr><th>Rank</th><th>Agent</th><th>Tickets</th><th></th></tr></thead>
             <tbody id="ccpTop5BodyDay"></tbody>
@@ -787,6 +808,11 @@ let agtPage = 1, agtPS = 50;
 let agtData = [];
 let agentChartInstance = null;
 let ccpChartInstance = null;
+let ccpPreciseStart = null;   // Date or null — set when a minute/hour quick range chip is active
+let ccpPreciseEnd = null;
+let ccpActiveQuickKey = 'all'; // tracks which Quick Range chip is currently selected
+let ccpActiveRangeStart = null; // last-computed effective range, read by the chart renderer
+let ccpActiveRangeEnd = null;
 let currentChartType = 'bar3d';
 let agingBuckets = {old:[], mid:[], rec:[]};
 let currentAgingBucket = null;
@@ -1795,6 +1821,11 @@ function renderAgentCharts() {
 
 // ---- CONTACT CENTRE AGENTS PERFORMANCE ----
 
+// Shared date formatter used across the CCP section: "21 Jul 2026"
+function ccpFmtDate(d) {
+  return d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+}
+
 function ccpDateParts(iso) {
   // iso like "2026-07-20T14:32:05"
   if (!iso) return null;
@@ -1814,12 +1845,25 @@ function renderCCP() {
   const toEl = document.getElementById('ccpDateTo');
   const fromVal = fromEl ? fromEl.value : '';
   const toVal = toEl ? toEl.value : '';
-  const rangeStart = fromVal ? new Date(fromVal + 'T00:00:00') : null;
-  const rangeEnd = toVal ? new Date(toVal + 'T23:59:59.999') : null;
 
-  const rows = filtered.filter(r => {
+  let rangeStart, rangeEnd;
+  if (ccpPreciseStart && ccpPreciseEnd) {
+    rangeStart = ccpPreciseStart;
+    rangeEnd = ccpPreciseEnd;
+  } else {
+    rangeStart = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+    rangeEnd = toVal ? new Date(toVal + 'T23:59:59.999') : null;
+  }
+  ccpActiveRangeStart = rangeStart;
+  ccpActiveRangeEnd = rangeEnd;
+
+  const preRangeRows = filtered.filter(r => {
     if (selectedAgent !== '__ALL__' && (r.ob||'').trim() !== selectedAgent) return false;
     if (selectedStatus !== '__ALL__' && (r.st||'').trim() !== selectedStatus) return false;
+    return true;
+  });
+
+  const rows = preRangeRows.filter(r => {
     if (rangeStart || rangeEnd) {
       const d = ccpDateParts(r.op);
       if (!d) return false;
@@ -1829,10 +1873,13 @@ function renderCCP() {
     return true;
   });
 
+  renderCCPQuickRanges(preRangeRows, fromVal, toVal);
+
   const setTxt0 = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   setTxt0('ccpRangeCount', rows.length.toLocaleString());
   setTxt0('ccpRangeSub', (rangeStart || rangeEnd)
-    ? (fromVal || '…') + ' → ' + (toVal || '…')
+    ? (ccpPreciseStart ? rangeStart.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : (fromVal || '…'))
+      + ' → ' + (ccpPreciseEnd ? rangeEnd.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : (toVal || '…'))
     : 'All time');
 
   const now = new Date();
@@ -1870,7 +1917,9 @@ function renderCCP() {
 
   const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   setTxt('ccpMinuteCount', minuteCount.toLocaleString());
+  setTxt('ccpMinuteSub', 'at ' + now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}));
   setTxt('ccpDayCount', dayCount.toLocaleString());
+  setTxt('ccpDaySub', 'Today, ' + ccpFmtDate(now) + ' — ' + dayCount.toLocaleString() + ' logged');
   setTxt('ccpMonthCount', monthCount.toLocaleString());
   setTxt('ccpAvgHour', avgHour >= 10 ? avgHour.toFixed(1) : avgHour.toFixed(2));
   setTxt('ccpAvgMinute', avgMinute.toFixed(3));
@@ -1885,21 +1934,239 @@ function clearCCPDateRange() {
   const toEl = document.getElementById('ccpDateTo');
   if (fromEl) fromEl.value = '';
   if (toEl) toEl.value = '';
+  ccpPreciseStart = null;
+  ccpPreciseEnd = null;
+  ccpActiveQuickKey = 'all';
   renderCCP();
+}
+
+function ccpDateInputChanged() {
+  // Manual edit of the calendar fields overrides any active quick-range chip
+  ccpPreciseStart = null;
+  ccpPreciseEnd = null;
+  ccpActiveQuickKey = null;
+  renderCCP();
+}
+
+// ---- QUICK DATE-RANGE PRESETS (each shows its own live ticket count) ----
+
+function ccpQuickRangeDefs() {
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfToday = new Date(startOfToday.getTime() + 86399999);
+
+  const startOfWeek = new Date(startOfToday);
+  const dow = (startOfWeek.getDay() + 6) % 7; // Monday = 0
+  startOfWeek.setDate(startOfWeek.getDate() - dow);
+
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const daysAgo = n => { const d = new Date(startOfToday); d.setDate(d.getDate() - (n - 1)); return d; };
+  const monthsAgo = n => { const d = new Date(startOfToday); d.setMonth(d.getMonth() - n); d.setDate(d.getDate() + 1); return d; };
+  const minutesAgo = n => new Date(now.getTime() - n * 60000);
+  const hoursAgo = n => new Date(now.getTime() - n * 3600000);
+
+  return [
+    // Minute / hour presets — precise (down-to-the-minute) ranges, drive the per-minute-per-agent chart
+    { key: 'min15',   label: '⏱️ Last 15 Min',     start: minutesAgo(15), end: now, precise: true },
+    { key: 'min30',   label: '⏱️ Last 30 Min',     start: minutesAgo(30), end: now, precise: true },
+    { key: 'hour1',   label: '🕐 Last 1 Hour',     start: hoursAgo(1),  end: now, precise: true },
+    { key: 'hour3',   label: '🕒 Last 3 Hours',    start: hoursAgo(3),  end: now, precise: true },
+    { key: 'hour6',   label: '🕕 Last 6 Hours',    start: hoursAgo(6),  end: now, precise: true },
+    { key: 'hour12',  label: '🕛 Last 12 Hours',   start: hoursAgo(12), end: now, precise: true },
+    // Day / week / month presets
+    { key: 'today',   label: '📅 Today',           start: startOfToday, end: endOfToday },
+    { key: 'week',    label: '🗓️ Weekly (This Week)', start: startOfWeek, end: endOfToday },
+    { key: 'month',   label: '📆 Month (This Month)', start: startOfMonth, end: endOfToday },
+    { key: 'last7',   label: '📊 Last 7 Days',     start: daysAgo(7), end: endOfToday },
+    { key: 'last1m',  label: '⏳ Last 1 Month',     start: monthsAgo(1), end: endOfToday },
+    { key: 'last2m',  label: '⏳ Last 2 Months',    start: monthsAgo(2), end: endOfToday },
+    { key: 'last3m',  label: '⏳ Last 3 Months',    start: monthsAgo(3), end: endOfToday },
+    { key: 'all',     label: '🌐 All',             start: null, end: null }
+  ];
+}
+
+function renderCCPQuickRanges(baseRows, curFrom, curTo) {
+  const container = document.getElementById('ccpQuickRanges');
+  if (!container) return;
+  const defs = ccpQuickRangeDefs();
+
+  container.innerHTML = defs.map(def => {
+    let count;
+    if (def.key === 'all') {
+      count = baseRows.length;
+    } else {
+      count = baseRows.filter(r => {
+        const d = ccpDateParts(r.op);
+        if (!d) return false;
+        return d >= def.start && d <= def.end;
+      }).length;
+    }
+
+    const isActive = ccpActiveQuickKey === def.key;
+
+    return `<button type="button" class="ccp-chip${isActive ? ' active' : ''}" onclick="applyCCPQuickRange('${def.key}')" title="${def.label}">
+      <span class="ccp-chip-lbl">${def.label}</span>
+      <span class="ccp-chip-count">${count.toLocaleString()}</span>
+    </button>`;
+  }).join('');
+}
+
+function applyCCPQuickRange(key) {
+  const def = ccpQuickRangeDefs().find(d => d.key === key);
+  if (!def) return;
+  const fromEl = document.getElementById('ccpDateFrom');
+  const toEl = document.getElementById('ccpDateTo');
+  const toISODate = d => d.toISOString().substring(0,10);
+
+  if (def.start && def.end) {
+    if (fromEl) fromEl.value = toISODate(def.start);
+    if (toEl) toEl.value = toISODate(def.end);
+    if (def.precise) {
+      // Minute/hour presets keep exact timestamps so the chart can plot per-minute-per-agent data
+      ccpPreciseStart = def.start;
+      ccpPreciseEnd = def.end;
+    } else {
+      ccpPreciseStart = null;
+      ccpPreciseEnd = null;
+    }
+  } else {
+    if (fromEl) fromEl.value = '';
+    if (toEl) toEl.value = '';
+    ccpPreciseStart = null;
+    ccpPreciseEnd = null;
+  }
+  ccpActiveQuickKey = key;
+  renderCCP();
+}
+
+const CCP_AGENT_COLORS = ['#1e3a8a','#dc2626','#16a34a','#d97706','#7c3aed','#0891b2','#be185d','#4b5563'];
+
+// Renders a multi-line chart: tickets logged per minute, one line per agent,
+// x-axis labeled with time of day (HH:MM), for the currently selected range.
+function renderCCPPerMinuteAgentChart(rows, rangeStart, rangeEnd, titleEl, canvas) {
+  const totalMinutes = Math.min(1440, Math.max(1, Math.round((rangeEnd - rangeStart) / 60000) + 1));
+  const bucketStart = new Date(rangeStart);
+  bucketStart.setSeconds(0, 0);
+
+  const minuteKeys = [];
+  for (let m = 0; m < totalMinutes; m++) {
+    const d = new Date(bucketStart.getTime() + m * 60000);
+    minuteKeys.push(String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'));
+  }
+
+  const rangeLabel = rangeStart.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})
+    + ' → ' + rangeEnd.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+  if (titleEl) titleEl.textContent = `⏱️ Tickets Logged Per Minute — By Agent — ${rangeLabel}`;
+
+  const agentMinuteCounts = {};
+  const agentTotals = {};
+  rows.forEach(r => {
+    const d = ccpDateParts(r.op);
+    if (!d || d < rangeStart || d > rangeEnd) return;
+    const minuteIdx = Math.floor((d - bucketStart) / 60000);
+    if (minuteIdx < 0 || minuteIdx >= totalMinutes) return;
+    const agent = (r.ob||'').trim() || '(blank)';
+    if (!agentMinuteCounts[agent]) { agentMinuteCounts[agent] = new Array(totalMinutes).fill(0); agentTotals[agent] = 0; }
+    agentMinuteCounts[agent][minuteIdx]++;
+    agentTotals[agent]++;
+  });
+
+  const sortedAgents = Object.entries(agentTotals).sort((a,b) => b[1] - a[1]);
+  const TOP_N = 6;
+  const topAgents = sortedAgents.slice(0, TOP_N).map(([a]) => a);
+  const otherAgents = sortedAgents.slice(TOP_N).map(([a]) => a);
+
+  const datasets = topAgents.map((agent, i) => ({
+    label: `${agent} (${agentTotals[agent]})`,
+    data: agentMinuteCounts[agent],
+    borderColor: CCP_AGENT_COLORS[i % CCP_AGENT_COLORS.length],
+    backgroundColor: 'transparent',
+    tension: 0.25,
+    pointRadius: 0,
+    borderWidth: 1.5,
+  }));
+
+  if (otherAgents.length) {
+    const otherData = new Array(totalMinutes).fill(0);
+    let otherTotal = 0;
+    otherAgents.forEach(agent => {
+      agentMinuteCounts[agent].forEach((v, idx) => { otherData[idx] += v; });
+      otherTotal += agentTotals[agent];
+    });
+    datasets.push({
+      label: `Other Agents (${otherTotal})`,
+      data: otherData,
+      borderColor: '#94a3b8',
+      backgroundColor: 'transparent',
+      tension: 0.25,
+      pointRadius: 0,
+      borderWidth: 1.5,
+      borderDash: [4,3],
+    });
+  }
+
+  if (!datasets.length) {
+    datasets.push({
+      label: 'Tickets Logged',
+      data: new Array(totalMinutes).fill(0),
+      borderColor: '#1e3a8a',
+      backgroundColor: 'rgba(30,58,138,0.12)',
+      fill: true,
+      pointRadius: 0,
+    });
+  }
+
+  if (ccpChartInstance) { ccpChartInstance.destroy(); ccpChartInstance = null; }
+  const ctx = canvas.getContext('2d');
+  ccpChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels: minuteKeys, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: {
+          title: { display: true, text: 'Time of Day', font: { size: 10, weight: '700' } },
+          grid: { display: false },
+          ticks: { font: { size: 9 }, maxTicksLimit: 24, autoSkip: true }
+        },
+        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } }
+      }
+    }
+  });
 }
 
 function renderCCPOverviewChart(rows) {
   const canvas = document.getElementById('ccpOverviewChart');
   if (!canvas) return;
   const modeEl = document.getElementById('ccpOverviewMode');
-  const mode = modeEl ? modeEl.value : 'daily';
   const titleEl = document.getElementById('ccpChartTitle');
 
-  let labels = [], data = [];
+  // When the selected range spans at most ~1 day (a single calendar date, or a
+  // precise minute/hour quick range), show a per-minute, per-agent breakdown
+  // instead of the coarser Overview mode, with the x-axis as time of day.
+  const spanMs = (ccpActiveRangeStart && ccpActiveRangeEnd) ? (ccpActiveRangeEnd - ccpActiveRangeStart) : null;
+  const usePerMinuteAgentView = spanMs !== null && spanMs <= (24*3600*1000 + 1000);
 
-  if (mode === 'daily') {
-    if (titleEl) titleEl.textContent = '📈 Daily Ticket Volume — Last 30 Days';
-    const now = new Date();
+  if (usePerMinuteAgentView) {
+    if (modeEl) modeEl.disabled = true;
+    renderCCPPerMinuteAgentChart(rows, ccpActiveRangeStart, ccpActiveRangeEnd, titleEl, canvas);
+    return;
+  }
+  if (modeEl) modeEl.disabled = false;
+
+  const mode = modeEl ? modeEl.value : 'last30';
+  let labels = [], data = [];
+  const now = new Date();
+
+  if (mode === 'last30') {
+    if (titleEl) titleEl.textContent = '📈 Daily Ticket Volume — 30 Last Day';
     const buckets = {};
     for (let i = 29; i >= 0; i--) {
       const d = new Date(now); d.setDate(d.getDate() - i);
@@ -1914,35 +2181,114 @@ function renderCCPOverviewChart(rows) {
     });
     labels = Object.keys(buckets).map(k => k.substring(5)); // MM-DD
     data = Object.values(buckets);
-  } else {
-    if (titleEl) titleEl.textContent = '🗓️ Monthly Ticket Volume';
+
+  } else if (mode === 'lasthour') {
+    if (titleEl) titleEl.textContent = '⏱️ Ticket Volume — Last Hour (per minute)';
     const buckets = {};
+    const order = [];
+    for (let i = 59; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 60000);
+      const key = d.toISOString().substring(0,16); // YYYY-MM-DDTHH:MM
+      buckets[key] = 0;
+      order.push(key);
+    }
     rows.forEach(r => {
       const d = ccpDateParts(r.op);
       if (!d) return;
-      const key = d.toISOString().substring(0,7); // YYYY-MM
-      buckets[key] = (buckets[key]||0) + 1;
+      const key = d.toISOString().substring(0,16);
+      if (key in buckets) buckets[key]++;
     });
-    const sortedKeys = Object.keys(buckets).sort();
-    labels = sortedKeys;
-    data = sortedKeys.map(k => buckets[k]);
+    labels = order.map(k => k.substring(11)); // HH:MM
+    data = order.map(k => buckets[k]);
+
+  } else if (mode === 'month') {
+    if (titleEl) titleEl.textContent = '📆 Daily Ticket Volume — This Month';
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const buckets = {};
+    const order = [];
+    for (let d = new Date(startOfMonth); d <= now; d.setDate(d.getDate() + 1)) {
+      const key = d.toISOString().substring(0,10);
+      buckets[key] = 0;
+      order.push(key);
+    }
+    rows.forEach(r => {
+      const d = ccpDateParts(r.op);
+      if (!d) return;
+      const key = d.toISOString().substring(0,10);
+      if (key in buckets) buckets[key]++;
+    });
+    labels = order.map(k => k.substring(8)); // DD
+    data = order.map(k => buckets[k]);
+
+  } else if (mode === 'lastmonth') {
+    if (titleEl) titleEl.textContent = '🗓️ Daily Ticket Volume — Last Month';
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    const buckets = {};
+    const order = [];
+    for (let d = new Date(startOfLastMonth); d <= endOfLastMonth; d.setDate(d.getDate() + 1)) {
+      const key = d.toISOString().substring(0,10);
+      buckets[key] = 0;
+      order.push(key);
+    }
+    rows.forEach(r => {
+      const d = ccpDateParts(r.op);
+      if (!d) return;
+      const key = d.toISOString().substring(0,10);
+      if (key in buckets) buckets[key]++;
+    });
+    labels = order.map(k => k.substring(5)); // MM-DD
+    data = order.map(k => buckets[k]);
+
+  } else if (mode === 'last7') {
+    if (titleEl) titleEl.textContent = '📊 Daily Ticket Volume — Last 7 Days';
+    const buckets = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now); d.setDate(d.getDate() - i);
+      const key = d.toISOString().substring(0,10);
+      buckets[key] = 0;
+    }
+    rows.forEach(r => {
+      const d = ccpDateParts(r.op);
+      if (!d) return;
+      const key = d.toISOString().substring(0,10);
+      if (key in buckets) buckets[key]++;
+    });
+    labels = Object.keys(buckets).map(k => k.substring(5)); // MM-DD
+    data = Object.values(buckets);
+
+  } else { // today: hourly breakdown of today, with minute-level precision available on hover
+    if (titleEl) titleEl.textContent = '⏰ Today\'s Ticket Volume — By Hour';
+    const todayStr = now.toISOString().substring(0,10);
+    const buckets = {};
+    for (let h = 0; h < 24; h++) buckets[h] = 0;
+    rows.forEach(r => {
+      const d = ccpDateParts(r.op);
+      if (!d) return;
+      if (d.toISOString().substring(0,10) !== todayStr) return;
+      buckets[d.getHours()]++;
+    });
+    labels = Object.keys(buckets).map(h => String(h).padStart(2,'0') + ':00');
+    data = Object.values(buckets);
   }
+
+  const isBar = (mode === 'today');
 
   if (ccpChartInstance) { ccpChartInstance.destroy(); ccpChartInstance = null; }
   const ctx = canvas.getContext('2d');
   ccpChartInstance = new Chart(ctx, {
-    type: mode === 'daily' ? 'line' : 'bar',
+    type: isBar ? 'bar' : 'line',
     data: {
       labels,
       datasets: [{
         label: 'Tickets Logged',
         data,
         borderColor: '#1e3a8a',
-        backgroundColor: mode === 'daily' ? 'rgba(30,58,138,0.12)' : 'rgba(30,58,138,0.75)',
-        fill: mode === 'daily',
+        backgroundColor: isBar ? 'rgba(30,58,138,0.75)' : 'rgba(30,58,138,0.12)',
+        fill: !isBar,
         tension: 0.3,
-        pointRadius: mode === 'daily' ? 2 : 0,
-        borderRadius: mode === 'daily' ? 0 : 6,
+        pointRadius: isBar ? 0 : 2,
+        borderRadius: isBar ? 6 : 0,
       }]
     },
     options: {
@@ -1969,16 +2315,35 @@ function renderCCPTop5() {
   if (statusLblEl) statusLblEl.textContent = selectedStatus !== '__ALL__' ? ' — ' + selectedStatus : '';
 
   const now = new Date();
-  const dayCutoff = new Date(now); dayCutoff.setHours(0,0,0,0);
+
+  // If a calendar date (or a precise minute/hour quick range) is selected,
+  // the "Per Day" column follows that date instead of always showing today.
+  let dayStart, dayEnd, dayLabelDate;
+  if (ccpActiveRangeStart && ccpActiveRangeEnd && (ccpActiveRangeEnd - ccpActiveRangeStart) <= (24*3600*1000 + 1000)) {
+    dayStart = new Date(ccpActiveRangeStart); dayStart.setHours(0,0,0,0);
+    dayEnd = new Date(dayStart.getTime() + 86399999);
+    dayLabelDate = ccpActiveRangeStart;
+  } else {
+    dayStart = new Date(now); dayStart.setHours(0,0,0,0);
+    dayEnd = new Date(dayStart.getTime() + 86399999);
+    dayLabelDate = now;
+  }
+  const isToday = dayLabelDate.toDateString() === now.toDateString();
+
   const weekCutoff = new Date(now); weekCutoff.setDate(weekCutoff.getDate() - 7);
   const monthCutoff = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  function computeTop5(cutoff) {
+  const dayTitleEl = document.getElementById('ccpTop5DayTitle');
+  if (dayTitleEl) dayTitleEl.textContent = '📅 Per Day — ' + (isToday ? 'Today ' : '') + '(' + ccpFmtDate(dayLabelDate) + ')';
+
+  function computeTop5(start, end) {
     const counts = {};
     filtered.forEach(r => {
       if (selectedStatus !== '__ALL__' && (r.st||'').trim() !== selectedStatus) return;
       const d = ccpDateParts(r.op);
-      if (!d || d < cutoff) return;
+      if (!d) return;
+      if (start && d < start) return;
+      if (end && d > end) return;
       const agent = (r.ob||'').trim() || '(blank)';
       counts[agent] = (counts[agent]||0) + 1;
     });
@@ -2001,9 +2366,9 @@ function renderCCPTop5() {
       : '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:14px;font-size:11px">No tickets in this period</td></tr>';
   }
 
-  renderInto(dayBody, computeTop5(dayCutoff));
-  renderInto(weekBody, computeTop5(weekCutoff));
-  renderInto(monthBody, computeTop5(monthCutoff));
+  renderInto(dayBody, computeTop5(dayStart, dayEnd));
+  renderInto(weekBody, computeTop5(weekCutoff, null));
+  renderInto(monthBody, computeTop5(monthCutoff, null));
 }
 
 function parseOpened(val) {
