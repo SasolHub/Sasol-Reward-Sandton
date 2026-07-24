@@ -1,7 +1,7 @@
 🛢️ Sasol Rewards — Customer Service Live Dashboard
 A fully interactive, real-time customer service analytics dashboard built for the Sasol Rewards programme. Upload any ServiceNow Excel export and the entire dashboard auto-refreshes instantly
 
-🔗 Live Real-Time: https://sasolhub.github.io/sasol-reward/ 📋 Features
+🔗 Live Real-Time: https://sasolhub.github.io/Sasol-Reward-Sandton/ 📋 Features
 
 📊 KPI Cards
 
