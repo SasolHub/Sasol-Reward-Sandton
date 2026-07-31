@@ -207,8 +207,47 @@ tbody td{padding:7px 10px;color:var(--g7);white-space:nowrap;max-width:160px;ove
 .ccp-chip.active .ccp-chip-count{background:rgba(255,255,255,0.25);color:white}
 .ccp-clearbtn:hover{background:var(--bp);border-color:var(--bm);color:var(--bd)}
 .ccp-chart-card{padding:0 16px 16px}
-.ccp-chart-title{font-size:12px;font-weight:700;color:var(--g7);margin-bottom:10px}
-.ccp-chart-wrap{height:280px;position:relative}
+.ccp-chart-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.ccp-chart-title{font-size:12px;font-weight:700;color:var(--g7);margin-bottom:0}
+.ccp-fs-btn{background:var(--g1);border:1.5px solid var(--g3);color:var(--g7);border-radius:7px;padding:6px 13px;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.18s;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.ccp-fs-btn:hover{background:var(--bp);border-color:var(--bm);color:var(--bd)}
+.ccp-chart-wrap{height:320px;position:relative}
+
+/* Fullscreen: chart takes most vertical space, legend gets room below */
+.ccp-chart-card:fullscreen,
+.ccp-chart-card:-webkit-full-screen {
+  background:white;
+  padding:28px 36px 24px;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  box-sizing:border-box;
+}
+.ccp-chart-card:fullscreen .ccp-chart-head,
+.ccp-chart-card:-webkit-full-screen .ccp-chart-head {
+  margin-bottom:14px;
+  flex-shrink:0;
+}
+.ccp-chart-card:fullscreen .ccp-chart-wrap,
+.ccp-chart-card:-webkit-full-screen .ccp-chart-wrap {
+  flex:1 1 auto;
+  height:auto;
+  min-height:0;
+}
+.ccp-chart-card:fullscreen .ccp-chart-title,
+.ccp-chart-card:-webkit-full-screen .ccp-chart-title {
+  font-size:18px;
+  font-weight:800;
+  color:var(--bd);
+}
+.ccp-chart-card:fullscreen .ccp-fs-btn,
+.ccp-chart-card:-webkit-full-screen .ccp-fs-btn {
+  background:var(--bd);
+  color:white;
+  border-color:transparent;
+  padding:8px 18px;
+  font-size:12px;
+}
 .ccp-top5-card{padding:0 16px 18px}
 .ccp-top5-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .ccp-top5-col{background:var(--g1);border:1px solid var(--g2);border-radius:10px;overflow:hidden}
@@ -735,8 +774,11 @@ th.atm-green{color:#d3ffe6}
     </div>
 
     <!-- 2: Daily & monthly overview graph -->
-    <div class="ccp-chart-card">
-      <div class="ccp-chart-title" id="ccpChartTitle">📈 Daily Ticket Volume — Last 30 Days</div>
+    <div class="ccp-chart-card" id="ccpChartCard">
+      <div class="ccp-chart-head">
+        <div class="ccp-chart-title" id="ccpChartTitle">📈 Daily Ticket Volume — Last 30 Days</div>
+        <button class="ccp-fs-btn" id="ccpFsBtn" onclick="toggleCCPChartFullscreen()" title="View chart full screen">⛶ Full Screen</button>
+      </div>
       <div class="ccp-chart-wrap"><canvas id="ccpOverviewChart"></canvas></div>
     </div>
 
@@ -808,6 +850,25 @@ let agtPage = 1, agtPS = 50;
 let agtData = [];
 let agentChartInstance = null;
 let ccpChartInstance = null;
+
+function toggleCCPChartFullscreen() {
+  const card = document.getElementById('ccpChartCard');
+  if (!card) return;
+  const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+  if (!isFs) {
+    (card.requestFullscreen || card.webkitRequestFullscreen || function(){}).call(card);
+  } else {
+    (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+  }
+}
+['fullscreenchange', 'webkitfullscreenchange'].forEach(evt => {
+  document.addEventListener(evt, () => {
+    const btn = document.getElementById('ccpFsBtn');
+    const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+    if (btn) btn.innerHTML = isFs ? '✕ Exit Full Screen' : '⛶ Full Screen';
+    if (ccpChartInstance) setTimeout(() => ccpChartInstance.resize(), 60);
+  });
+});
 let ccpPreciseStart = null;   // Date or null — set when a minute/hour quick range chip is active
 let ccpPreciseEnd = null;
 let ccpActiveQuickKey = 'all'; // tracks which Quick Range chip is currently selected
@@ -2042,101 +2103,151 @@ function applyCCPQuickRange(key) {
 
 const CCP_AGENT_COLORS = ['#1e3a8a','#dc2626','#16a34a','#d97706','#7c3aed','#0891b2','#be185d','#4b5563'];
 
-// Renders a multi-line chart: tickets logged per minute, one line per agent,
-// x-axis labeled with time of day (HH:MM), for the currently selected range.
-function renderCCPPerMinuteAgentChart(rows, rangeStart, rangeEnd, titleEl, canvas) {
-  const totalMinutes = Math.min(1440, Math.max(1, Math.round((rangeEnd - rangeStart) / 60000) + 1));
-  const bucketStart = new Date(rangeStart);
-  bucketStart.setSeconds(0, 0);
+// Agent color palette — each agent gets a distinct colour used in bar + legend
+const CCP_TOD_COLORS = [
+  {bg:'rgba(30,58,138,0.78)',  border:'#1e3a8a'},  // deep blue
+  {bg:'rgba(220,38,38,0.78)', border:'#dc2626'},  // red
+  {bg:'rgba(22,163,74,0.78)', border:'#16a34a'},  // green
+  {bg:'rgba(217,119,6,0.78)', border:'#d97706'},  // amber
+  {bg:'rgba(124,58,237,0.78)',border:'#7c3aed'},  // violet
+  {bg:'rgba(8,145,178,0.78)', border:'#0891b2'},  // cyan
+  {bg:'rgba(190,24,93,0.78)', border:'#be185d'},  // pink
+  {bg:'rgba(75,85,99,0.78)',  border:'#4b5563'},  // slate
+  {bg:'rgba(5,150,105,0.78)', border:'#059669'},  // emerald
+  {bg:'rgba(234,88,12,0.78)', border:'#ea580c'},  // orange
+  {bg:'rgba(99,102,241,0.78)',border:'#6366f1'},  // indigo
+  {bg:'rgba(20,184,166,0.78)',border:'#14b8a6'},  // teal
+];
 
-  const minuteKeys = [];
-  for (let m = 0; m < totalMinutes; m++) {
-    const d = new Date(bucketStart.getTime() + m * 60000);
-    minuteKeys.push(String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'));
+// Renders a combo chart for a single-day span:
+// • Grouped / stacked bars — one colour per agent — show ticket count each hour
+// • One smooth trend line overlaid across the total, for the overall shape
+function renderCCPPerMinuteAgentChart(rows, rangeStart, rangeEnd, titleEl, canvas) {
+  const totalHours = Math.min(24, Math.max(1, Math.round((rangeEnd - rangeStart) / 3600000) + 1));
+  const bucketStart = new Date(rangeStart);
+  bucketStart.setMinutes(0, 0, 0);
+
+  const hourKeys = [];
+  for (let h = 0; h < totalHours; h++) {
+    const d = new Date(bucketStart.getTime() + h * 3600000);
+    hourKeys.push(String(d.getHours()).padStart(2,'0') + ':00');
   }
 
   const rangeLabel = rangeStart.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})
     + ' → ' + rangeEnd.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
-  if (titleEl) titleEl.textContent = `⏱️ Tickets Logged Per Minute — By Agent — ${rangeLabel}`;
+  if (titleEl) titleEl.textContent = `⏰ Tickets by Time of Day (Last Day) — ${rangeLabel}`;
 
-  const agentMinuteCounts = {};
-  const agentTotals = {};
+  // Build per-agent, per-hour counts
+  const agentMap = {};
   rows.forEach(r => {
     const d = ccpDateParts(r.op);
     if (!d || d < rangeStart || d > rangeEnd) return;
-    const minuteIdx = Math.floor((d - bucketStart) / 60000);
-    if (minuteIdx < 0 || minuteIdx >= totalMinutes) return;
-    const agent = (r.ob||'').trim() || '(blank)';
-    if (!agentMinuteCounts[agent]) { agentMinuteCounts[agent] = new Array(totalMinutes).fill(0); agentTotals[agent] = 0; }
-    agentMinuteCounts[agent][minuteIdx]++;
-    agentTotals[agent]++;
+    const hourIdx = Math.floor((d - bucketStart) / 3600000);
+    if (hourIdx < 0 || hourIdx >= totalHours) return;
+    const agent = (r.ob || '').trim() || '(Unassigned)';
+    if (!agentMap[agent]) agentMap[agent] = new Array(totalHours).fill(0);
+    agentMap[agent][hourIdx]++;
   });
 
-  const sortedAgents = Object.entries(agentTotals).sort((a,b) => b[1] - a[1]);
-  const TOP_N = 6;
-  const topAgents = sortedAgents.slice(0, TOP_N).map(([a]) => a);
-  const otherAgents = sortedAgents.slice(TOP_N).map(([a]) => a);
+  // Sort agents by total descending so most active get top colours
+  const agentNames = Object.keys(agentMap).sort((a,b) =>
+    agentMap[b].reduce((s,v)=>s+v,0) - agentMap[a].reduce((s,v)=>s+v,0)
+  );
 
-  const datasets = topAgents.map((agent, i) => ({
-    label: `${agent} (${agentTotals[agent]})`,
-    data: agentMinuteCounts[agent],
-    borderColor: CCP_AGENT_COLORS[i % CCP_AGENT_COLORS.length],
+  // Totals per hour for the smooth trend line
+  const totalCounts = new Array(totalHours).fill(0);
+  agentNames.forEach(ag => agentMap[ag].forEach((v,i) => { totalCounts[i] += v; }));
+
+  // Build bar datasets (one per agent)
+  const datasets = agentNames.map((ag, i) => {
+    const col = CCP_TOD_COLORS[i % CCP_TOD_COLORS.length];
+    return {
+      type: 'bar',
+      label: ag,
+      data: agentMap[ag],
+      backgroundColor: col.bg,
+      borderColor: col.border,
+      borderWidth: 1,
+      borderRadius: 4,
+      maxBarThickness: 36,
+      stack: 'agents',  // stacked so bars don't overflow on busy hours
+      order: 2,
+    };
+  });
+
+  // Smooth trend line on top (total, no fill, bold, wide)
+  datasets.push({
+    type: 'line',
+    label: '— Trend (All Agents)',
+    data: totalCounts,
+    borderColor: '#0f172a',
     backgroundColor: 'transparent',
-    tension: 0.25,
-    pointRadius: 0,
-    borderWidth: 1.5,
-  }));
-
-  if (otherAgents.length) {
-    const otherData = new Array(totalMinutes).fill(0);
-    let otherTotal = 0;
-    otherAgents.forEach(agent => {
-      agentMinuteCounts[agent].forEach((v, idx) => { otherData[idx] += v; });
-      otherTotal += agentTotals[agent];
-    });
-    datasets.push({
-      label: `Other Agents (${otherTotal})`,
-      data: otherData,
-      borderColor: '#94a3b8',
-      backgroundColor: 'transparent',
-      tension: 0.25,
-      pointRadius: 0,
-      borderWidth: 1.5,
-      borderDash: [4,3],
-    });
-  }
-
-  if (!datasets.length) {
-    datasets.push({
-      label: 'Tickets Logged',
-      data: new Array(totalMinutes).fill(0),
-      borderColor: '#1e3a8a',
-      backgroundColor: 'rgba(30,58,138,0.12)',
-      fill: true,
-      pointRadius: 0,
-    });
-  }
+    borderWidth: 3,
+    tension: 0.45,
+    cubicInterpolationMode: 'monotone',
+    pointRadius: 4,
+    pointHoverRadius: 7,
+    pointBackgroundColor: '#0f172a',
+    pointBorderColor: '#fff',
+    pointBorderWidth: 2,
+    fill: false,
+    order: 1,
+  });
 
   if (ccpChartInstance) { ccpChartInstance.destroy(); ccpChartInstance = null; }
   const ctx = canvas.getContext('2d');
   ccpChartInstance = new Chart(ctx, {
-    type: 'line',
-    data: { labels: minuteKeys, datasets },
+    data: { labels: hourKeys, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: { display: true, position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } },
-        tooltip: { mode: 'index', intersect: false }
-      },
       interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            font: { size: 11, weight: '600' },
+            boxWidth: 14,
+            padding: 16,
+            color: '#334155',
+            usePointStyle: false,
+            filter: item => item.text !== '— Trend (All Agents)' ? true : true,
+          }
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          backgroundColor: 'rgba(15,23,42,0.93)',
+          titleFont: { size: 12, weight: '700' },
+          bodyFont: { size: 11 },
+          padding: 12,
+          cornerRadius: 9,
+          callbacks: {
+            title: items => `🕐 ${items[0].label}`,
+            label: ctx => {
+              if (ctx.dataset.type === 'line') return ` Total: ${ctx.parsed.y}`;
+              return ` ${ctx.dataset.label}: ${ctx.parsed.y}`;
+            }
+          }
+        }
+      },
       scales: {
         x: {
-          title: { display: true, text: 'Time of Day', font: { size: 10, weight: '700' } },
+          stacked: true,
+          title: { display: true, text: 'Time of Day', font: { size: 11, weight: '700' }, color: '#334155', padding: { top: 8 } },
           grid: { display: false },
-          ticks: { font: { size: 9 }, maxTicksLimit: 24, autoSkip: true }
+          ticks: { font: { size: 10, weight: '500' }, color: '#475569', maxRotation: 45, minRotation: 0 },
+          border: { color: '#e2e8f0' }
         },
-        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } }
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          title: { display: true, text: 'Tickets Logged', font: { size: 11, weight: '700' }, color: '#334155' },
+          grid: { color: 'rgba(0,87,184,0.07)' },
+          ticks: { precision: 0, font: { size: 10 }, color: '#475569' },
+          border: { dash: [4,4], color: 'transparent' }
+        }
       }
     }
   });
@@ -2276,28 +2387,121 @@ function renderCCPOverviewChart(rows) {
 
   if (ccpChartInstance) { ccpChartInstance.destroy(); ccpChartInstance = null; }
   const ctx = canvas.getContext('2d');
+
+  // "Today" (time of day) view: per-agent stacked bars + smooth total trend line
+  let datasets;
+  if (isBar) {
+    // Build per-agent hour counts for "today"
+    const todayStr2 = now.toISOString().substring(0,10);
+    const agentMapT = {};
+    rows.forEach(r => {
+      const d = ccpDateParts(r.op);
+      if (!d || d.toISOString().substring(0,10) !== todayStr2) return;
+      const ag = (r.ob || '').trim() || '(Unassigned)';
+      if (!agentMapT[ag]) agentMapT[ag] = new Array(24).fill(0);
+      agentMapT[ag][d.getHours()]++;
+    });
+    const agNames = Object.keys(agentMapT).sort((a,b) =>
+      agentMapT[b].reduce((s,v)=>s+v,0) - agentMapT[a].reduce((s,v)=>s+v,0)
+    );
+    // Per-agent bar datasets
+    datasets = agNames.map((ag, i) => {
+      const col = CCP_TOD_COLORS[i % CCP_TOD_COLORS.length];
+      return {
+        type: 'bar',
+        label: ag,
+        data: agentMapT[ag],
+        backgroundColor: col.bg,
+        borderColor: col.border,
+        borderWidth: 1,
+        borderRadius: 4,
+        maxBarThickness: 36,
+        stack: 'agents',
+        order: 2,
+      };
+    });
+    // Smooth trend line (totals)
+    datasets.push({
+      type: 'line',
+      label: '— Trend (All Agents)',
+      data,
+      borderColor: '#0f172a',
+      backgroundColor: 'transparent',
+      borderWidth: 3,
+      tension: 0.45,
+      cubicInterpolationMode: 'monotone',
+      pointRadius: 4,
+      pointHoverRadius: 7,
+      pointBackgroundColor: '#0f172a',
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      fill: false,
+      order: 1,
+    });
+  } else {
+    datasets = [{
+      type: 'line',
+      label: 'Tickets Logged',
+      data,
+      borderColor: '#1e3a8a',
+      backgroundColor: 'rgba(30,58,138,0.12)',
+      fill: true,
+      tension: 0.35,
+      cubicInterpolationMode: 'monotone',
+      pointRadius: 2,
+    }];
+  }
+
   ccpChartInstance = new Chart(ctx, {
-    type: isBar ? 'bar' : 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Tickets Logged',
-        data,
-        borderColor: '#1e3a8a',
-        backgroundColor: isBar ? 'rgba(30,58,138,0.75)' : 'rgba(30,58,138,0.12)',
-        fill: !isBar,
-        tension: 0.3,
-        pointRadius: isBar ? 0 : 2,
-        borderRadius: isBar ? 6 : 0,
-      }]
-    },
+    data: { labels, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      interaction: isBar ? { mode: 'index', intersect: false } : undefined,
+      plugins: {
+        legend: {
+          display: isBar,
+          position: 'bottom',
+          labels: {
+            font: { size: 11, weight: '600' },
+            boxWidth: 14,
+            padding: 16,
+            color: '#334155'
+          }
+        },
+        tooltip: isBar ? {
+          mode: 'index',
+          intersect: false,
+          backgroundColor: 'rgba(15,23,42,0.93)',
+          titleFont: { size: 12, weight: '700' },
+          bodyFont: { size: 11 },
+          padding: 12,
+          cornerRadius: 9,
+          callbacks: {
+            title: items => `🕐 ${items[0].label}`,
+            label: ctx2 => {
+              if (ctx2.dataset.type === 'line') return ` Total: ${ctx2.parsed.y}`;
+              return ` ${ctx2.dataset.label}: ${ctx2.parsed.y}`;
+            }
+          }
+        } : undefined
+      },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } }
+        x: {
+          stacked: isBar,
+          title: isBar ? { display: true, text: 'Time of Day', font: { size: 11, weight: '700' }, color: '#334155', padding: { top: 8 } } : undefined,
+          grid: { display: false },
+          ticks: { font: { size: 10, weight: '500' }, color: '#475569', maxRotation: 45, minRotation: 0 },
+          border: { color: '#e2e8f0' }
+        },
+        y: {
+          stacked: isBar,
+          beginAtZero: true,
+          title: isBar ? { display: true, text: 'Tickets Logged', font: { size: 11, weight: '700' }, color: '#334155' } : undefined,
+          grid: { color: 'rgba(0,87,184,0.07)' },
+          ticks: { precision: 0, font: { size: 10 }, color: '#475569' },
+          border: isBar ? { dash: [4,4], color: 'transparent' } : undefined
+        }
       }
     }
   });
