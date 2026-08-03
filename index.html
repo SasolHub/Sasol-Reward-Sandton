@@ -267,6 +267,24 @@ tbody td{padding:7px 10px;color:var(--g7);white-space:nowrap;max-width:160px;ove
 .ccp-bar-fill{height:100%;background:linear-gradient(90deg,var(--bd),var(--bm));border-radius:3px}
 @media(max-width:900px){.ccp-stats-grid{grid-template-columns:repeat(3,1fr)}}
 
+/* CCP Channel breakdown tiles */
+.ccp-channel-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-top:2px solid var(--g3);border-bottom:2px solid var(--g3);margin:0 0 0 0;background:var(--g1)}
+@media(max-width:900px){.ccp-channel-bar{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.ccp-channel-bar{grid-template-columns:repeat(2,1fr)}}
+.ccp-ch-tile{padding:14px 16px;border-right:1px solid var(--g3);cursor:pointer;transition:all 0.2s;text-align:center;position:relative;overflow:hidden}
+.ccp-ch-tile:last-child{border-right:none}
+.ccp-ch-tile:hover{transform:translateY(-2px);z-index:2;box-shadow:var(--shm)}
+.ccp-ch-tile.ccp-ch-active{outline:3px solid var(--bm);outline-offset:-3px;z-index:3}
+.ccp-ch-icon{font-size:22px;margin-bottom:4px;line-height:1}
+.ccp-ch-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.ccp-ch-val{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.ccp-ch-pct{font-size:11px;font-weight:700;margin-top:4px;opacity:0.75}
+.ccp-ch-mobile{background:linear-gradient(135deg,#eff6ff,#fff)}.ccp-ch-mobile .ccp-ch-lbl{color:#1d4ed8}.ccp-ch-mobile .ccp-ch-val{color:#1d4ed8}
+.ccp-ch-phone{background:linear-gradient(135deg,#f0fdf4,#fff)}.ccp-ch-phone .ccp-ch-lbl{color:#16a34a}.ccp-ch-phone .ccp-ch-val{color:#16a34a}
+.ccp-ch-email{background:linear-gradient(135deg,#fef3c7,#fff)}.ccp-ch-email .ccp-ch-lbl{color:#d97706}.ccp-ch-email .ccp-ch-val{color:#d97706}
+.ccp-ch-blank{background:linear-gradient(135deg,#fafafa,#fff)}.ccp-ch-blank .ccp-ch-lbl{color:#6b7280}.ccp-ch-blank .ccp-ch-val{color:#6b7280}
+.ccp-ch-all{background:linear-gradient(135deg,var(--bu),#fff)}.ccp-ch-all .ccp-ch-lbl{color:var(--bd)}.ccp-ch-all .ccp-ch-val{color:var(--bd)}
+
 /* Aging type matrix table */
 .aging-type-matrix{border-top:1px solid var(--g3)}
 .atm-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--g1);border-bottom:1px solid var(--g3);font-size:11px;font-weight:700;color:var(--g7);flex-wrap:wrap}
@@ -727,6 +745,16 @@ th.atm-green{color:#d3ffe6}
         </div>
       </div>
       <div class="fg">
+        <label>📡 Channel:</label>
+        <select id="ccpChannelSelect" onchange="renderCCP()">
+          <option value="__ALL__">📡 All Channels</option>
+          <option value="Mobile App">📱 Mobile App</option>
+          <option value="Phone">📞 Phone</option>
+          <option value="Email">📧 Email</option>
+          <option value="__blank__">❓ Blank / Unknown</option>
+        </select>
+      </div>
+      <div class="fg">
         <label>&nbsp;</label>
         <button class="ccp-clearbtn" onclick="clearCCPDateRange()">✕ Clear Range</button>
       </div>
@@ -770,6 +798,40 @@ th.atm-green{color:#d3ffe6}
       <div class="ccp-stat ccp-stat-warn">
         <div class="ccp-stat-lbl">Still New / Open</div>
         <div class="ccp-stat-val" id="ccpOpenCount">0</div>
+      </div>
+    </div>
+
+    <!-- Channel breakdown tiles — live counts for the current filter -->
+    <div class="ccp-channel-bar" id="ccpChannelBar">
+      <div class="ccp-ch-tile ccp-ch-mobile" onclick="setCCPChannel('Mobile App')" id="ccpChTileMobile">
+        <div class="ccp-ch-icon">📱</div>
+        <div class="ccp-ch-lbl">Mobile App</div>
+        <div class="ccp-ch-val" id="ccpChMobileVal">0</div>
+        <div class="ccp-ch-pct" id="ccpChMobilePct">0%</div>
+      </div>
+      <div class="ccp-ch-tile ccp-ch-phone" onclick="setCCPChannel('Phone')" id="ccpChTilePhone">
+        <div class="ccp-ch-icon">📞</div>
+        <div class="ccp-ch-lbl">Phone</div>
+        <div class="ccp-ch-val" id="ccpChPhoneVal">0</div>
+        <div class="ccp-ch-pct" id="ccpChPhonePct">0%</div>
+      </div>
+      <div class="ccp-ch-tile ccp-ch-email" onclick="setCCPChannel('Email')" id="ccpChTileEmail">
+        <div class="ccp-ch-icon">📧</div>
+        <div class="ccp-ch-lbl">Email</div>
+        <div class="ccp-ch-val" id="ccpChEmailVal">0</div>
+        <div class="ccp-ch-pct" id="ccpChEmailPct">0%</div>
+      </div>
+      <div class="ccp-ch-tile ccp-ch-blank" onclick="setCCPChannel('__blank__')" id="ccpChTileBlank">
+        <div class="ccp-ch-icon">❓</div>
+        <div class="ccp-ch-lbl">Blank / Unknown</div>
+        <div class="ccp-ch-val" id="ccpChBlankVal">0</div>
+        <div class="ccp-ch-pct" id="ccpChBlankPct">0%</div>
+      </div>
+      <div class="ccp-ch-tile ccp-ch-all" onclick="setCCPChannel('__ALL__')" id="ccpChTileAll">
+        <div class="ccp-ch-icon">📡</div>
+        <div class="ccp-ch-lbl">All Channels</div>
+        <div class="ccp-ch-val" id="ccpChAllVal">0</div>
+        <div class="ccp-ch-pct">100%</div>
       </div>
     </div>
 
@@ -1901,6 +1963,8 @@ function renderCCP() {
   const selectedAgent = selEl.value || '__ALL__';
   const statusEl = document.getElementById('ccpStatusSelect');
   const selectedStatus = statusEl ? statusEl.value : '__ALL__';
+  const channelEl = document.getElementById('ccpChannelSelect');
+  const selectedChannel = channelEl ? channelEl.value : '__ALL__';
 
   const fromEl = document.getElementById('ccpDateFrom');
   const toEl = document.getElementById('ccpDateTo');
@@ -1918,13 +1982,23 @@ function renderCCP() {
   ccpActiveRangeStart = rangeStart;
   ccpActiveRangeEnd = rangeEnd;
 
+  // Helper: normalise channel value for comparison
+  const normCh = r => (r.ch || '').trim();
+  const chMatch = (r, ch) => {
+    if (ch === '__ALL__') return true;
+    if (ch === '__blank__') return normCh(r) === '';
+    return normCh(r) === ch;
+  };
+
   const preRangeRows = filtered.filter(r => {
     if (selectedAgent !== '__ALL__' && (r.ob||'').trim() !== selectedAgent) return false;
     if (selectedStatus !== '__ALL__' && (r.st||'').trim() !== selectedStatus) return false;
     return true;
   });
 
-  const rows = preRangeRows.filter(r => {
+  // Channel tile counts — always use preRangeRows (before date range so tiles show full picture),
+  // then apply the date range on top for the actual chart rows.
+  const chBase = preRangeRows.filter(r => {
     if (rangeStart || rangeEnd) {
       const d = ccpDateParts(r.op);
       if (!d) return false;
@@ -1933,10 +2007,39 @@ function renderCCP() {
     }
     return true;
   });
+  const chCounts = { 'Mobile App': 0, 'Phone': 0, 'Email': 0, '__blank__': 0 };
+  chBase.forEach(r => {
+    const ch = normCh(r);
+    if (ch === '') { chCounts['__blank__']++; }
+    else if (chCounts[ch] !== undefined) { chCounts[ch]++; }
+  });
+  const chTotal = chBase.length;
+  const pct = n => chTotal > 0 ? ((n / chTotal) * 100).toFixed(1) + '%' : '0%';
+  const setTxt0 = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setTxt0('ccpChMobileVal', chCounts['Mobile App'].toLocaleString());
+  setTxt0('ccpChMobilePct', pct(chCounts['Mobile App']));
+  setTxt0('ccpChPhoneVal',  chCounts['Phone'].toLocaleString());
+  setTxt0('ccpChPhonePct',  pct(chCounts['Phone']));
+  setTxt0('ccpChEmailVal',  chCounts['Email'].toLocaleString());
+  setTxt0('ccpChEmailPct',  pct(chCounts['Email']));
+  setTxt0('ccpChBlankVal',  chCounts['__blank__'].toLocaleString());
+  setTxt0('ccpChBlankPct',  pct(chCounts['__blank__']));
+  setTxt0('ccpChAllVal',    chTotal.toLocaleString());
+
+  // Highlight active channel tile
+  ['Mobile', 'Phone', 'Email', 'Blank', 'All'].forEach(k => {
+    const el = document.getElementById('ccpChTile' + k);
+    if (el) el.classList.remove('ccp-ch-active');
+  });
+  const tileMap = { 'Mobile App':'Mobile', 'Phone':'Phone', 'Email':'Email', '__blank__':'Blank', '__ALL__':'All' };
+  const activeTile = document.getElementById('ccpChTile' + (tileMap[selectedChannel] || 'All'));
+  if (activeTile) activeTile.classList.add('ccp-ch-active');
+
+  // Chart rows: apply channel filter on top of date range
+  const rows = chBase.filter(r => chMatch(r, selectedChannel));
 
   renderCCPQuickRanges(preRangeRows, fromVal, toVal);
 
-  const setTxt0 = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   setTxt0('ccpRangeCount', rows.length.toLocaleString());
   setTxt0('ccpRangeSub', (rangeStart || rangeEnd)
     ? (ccpPreciseStart ? rangeStart.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : (fromVal || '…'))
@@ -1946,9 +2049,8 @@ function renderCCP() {
   const now = new Date();
   const todayStr = now.toISOString().substring(0,10);
   const curMonthStr = now.toISOString().substring(0,7);
-  const curMinuteStr = now.toISOString().substring(0,16); // YYYY-MM-DDTHH:MM
+  const curMinuteStr = now.toISOString().substring(0,16);
 
-  // 1 & partial 3: tickets this minute / today / this month
   let minuteCount = 0, dayCount = 0, monthCount = 0, openCount = 0;
   let minOp = null, maxOp = null;
 
@@ -1966,14 +2068,11 @@ function renderCCP() {
     if (s === 'new' || s === 'open') openCount++;
   });
 
-  // 4: average tickets per hour / minute, based on the span of the filtered data
   let avgHour = 0, avgMinute = 0;
   if (minOp && maxOp && rows.length) {
-    const spanMs = Math.max(maxOp - minOp, 60000); // at least 1 minute to avoid divide-by-huge-number
-    const spanHours = spanMs / 3600000;
-    const spanMinutes = spanMs / 60000;
-    avgHour = rows.length / spanHours;
-    avgMinute = rows.length / spanMinutes;
+    const spanMs = Math.max(maxOp - minOp, 60000);
+    avgHour = rows.length / (spanMs / 3600000);
+    avgMinute = rows.length / (spanMs / 60000);
   }
 
   const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
@@ -1988,6 +2087,18 @@ function renderCCP() {
 
   renderCCPOverviewChart(rows);
   renderCCPTop5();
+}
+
+// Click a channel tile to filter the chart (toggles off if already active)
+function setCCPChannel(ch) {
+  const el = document.getElementById('ccpChannelSelect');
+  if (!el) return;
+  if (el.value === ch) {
+    el.value = '__ALL__';   // clicking the same tile again resets to All
+  } else {
+    el.value = ch;
+  }
+  renderCCP();
 }
 
 function clearCCPDateRange() {
